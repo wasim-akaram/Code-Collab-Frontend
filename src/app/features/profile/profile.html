@@ -1,0 +1,168 @@
+<div class="profile-page">
+ <div class="profile-container">
+
+ <!-- Loading State -->
+ <div class="loading-state" *ngIf="isLoading">
+ <div class="spinner"></div>
+ <p>Loading profile...</p>
+ </div>
+
+ <!-- Error State -->
+ <div class="alert alert-error" *ngIf="error">
+ <span> {{ error }}</span>
+ <button class="alert-dismiss" (click)="error = ''">×</button>
+ </div>
+
+ <!-- Success Message -->
+ <div class="alert alert-success" *ngIf="successMessage">
+ <span> {{ successMessage }}</span>
+ </div>
+
+ <!-- Profile Card -->
+ <div class="profile-card glass-card" *ngIf="profile && !isLoading">
+
+ <!-- Header -->
+ <div class="profile-header">
+ <div class="avatar-section">
+ <div class="avatar-large" *ngIf="!profile.avatarUrl">
+ {{ getInitial() }}
+ </div>
+ <img *ngIf="profile.avatarUrl" [src]="profile.avatarUrl" class="avatar-img" alt="Avatar">
+ <div class="status-indicator" [class.active]="profile.active"></div>
+ </div>
+
+ <div class="header-info">
+ <h1 class="profile-name">{{ profile.fullName || profile.username }}</h1>
+ <p class="profile-username">&#64;{{ profile.username }}</p>
+ <div class="profile-badges">
+ <span class="badge badge-role">{{ profile.role }}</span>
+ <span class="badge badge-provider">{{ profile.provider }}</span>
+ <span class="badge badge-status" [class.badge-active]="profile.active" [class.badge-inactive]="!profile.active">
+ {{ profile.active ? 'Active' : 'Suspended' }}
+ </span>
+ </div>
+ </div>
+
+ <button class="btn btn-edit" (click)="startEditing()" *ngIf="!isEditing">
+ Edit Profile
+ </button>
+ </div>
+
+ <!-- View Mode -->
+ <div class="profile-body" *ngIf="!isEditing">
+ <div class="info-grid">
+ <div class="info-item">
+ <span class="info-label"> Email</span>
+ <span class="info-value">{{ profile.email }}</span>
+ </div>
+ <div class="info-item">
+ <span class="info-label"> Full Name</span>
+ <span class="info-value">{{ profile.fullName || '—' }}</span>
+ </div>
+ <div class="info-item">
+ <span class="info-label"> Username</span>
+ <span class="info-value">&#64;{{ profile.username }}</span>
+ </div>
+ <div class="info-item">
+ <span class="info-label"> Member Since</span>
+ <span class="info-value">{{ getMemberSince() }}</span>
+ </div>
+ </div>
+
+ <div class="bio-section" *ngIf="profile.bio">
+ <span class="info-label"> Bio</span>
+ <p class="bio-text">{{ profile.bio }}</p>
+ </div>
+ <div class="bio-section" *ngIf="!profile.bio">
+ <span class="info-label"> Bio</span>
+ <p class="bio-empty">No bio yet. Click "Edit Profile" to add one.</p>
+ </div>
+ </div>
+
+ <!-- Edit Mode -->
+ <div class="profile-edit" *ngIf="isEditing">
+ <h2 class="section-title">Edit Profile</h2>
+
+ <div class="form-group">
+ <label for="edit-fullname">Full Name</label>
+ <input id="edit-fullname" type="text" class="form-input" [(ngModel)]="editForm.fullName" placeholder="Your full name">
+ </div>
+
+ <div class="form-group">
+ <label for="edit-username">Username</label>
+ <input id="edit-username" type="text" class="form-input" [(ngModel)]="editForm.username" placeholder="Username">
+ </div>
+
+ <div class="form-group">
+ <label for="edit-bio">Bio</label>
+ <textarea id="edit-bio" class="form-input form-textarea" [(ngModel)]="editForm.bio" placeholder="Tell us about yourself..." rows="3"></textarea>
+ </div>
+
+ <div class="form-group">
+ <label for="edit-avatar">Avatar URL</label>
+ <input id="edit-avatar" type="url" class="form-input" [(ngModel)]="editForm.avatarUrl" placeholder="https://example.com/avatar.jpg">
+ </div>
+
+ <div class="edit-actions">
+ <button class="btn btn-save" (click)="saveProfile()" [disabled]="isSaving">
+ {{ isSaving ? '⏳ Saving...' : ' Save Changes' }}
+ </button>
+ <button class="btn btn-cancel" (click)="cancelEditing()" [disabled]="isSaving">Cancel</button>
+ </div>
+ </div>
+ </div>
+
+ <!-- Change Password Section -->
+ <div class="section-card glass-card" *ngIf="profile && !isLoading">
+ <div class="section-header" (click)="togglePasswordForm()">
+ <h2 class="section-title"> Change Password</h2>
+ <span class="expand-icon">{{ showPasswordForm ? '▲' : '▼' }}</span>
+ </div>
+
+ <div class="password-form" *ngIf="showPasswordForm">
+ <div class="alert alert-error" *ngIf="passwordError"> {{ passwordError }}</div>
+ <div class="alert alert-success" *ngIf="passwordSuccess"> {{ passwordSuccess }}</div>
+
+ <div class="form-group">
+ <label for="old-password">Current Password</label>
+ <input id="old-password" type="password" class="form-input" [(ngModel)]="passwordForm.oldPassword" placeholder="Enter current password">
+ </div>
+ <div class="form-group">
+ <label for="new-password">New Password</label>
+ <input id="new-password" type="password" class="form-input" [(ngModel)]="passwordForm.newPassword" placeholder="Enter new password">
+ </div>
+ <div class="form-group">
+ <label for="confirm-password">Confirm New Password</label>
+ <input id="confirm-password" type="password" class="form-input" [(ngModel)]="passwordForm.confirmPassword" placeholder="Confirm new password">
+ </div>
+
+ <button class="btn btn-save" (click)="changePassword()" [disabled]="isChangingPassword">
+ {{ isChangingPassword ? '⏳ Changing...' : ' Change Password' }}
+ </button>
+ </div>
+ </div>
+
+ <!-- Danger Zone -->
+ <div class="section-card glass-card danger-zone" *ngIf="profile && !isLoading">
+ <h2 class="section-title danger-title"> Danger Zone</h2>
+ <p class="danger-desc">Deactivating your account will disable your login. This action can be reversed by an admin.</p>
+
+ <button class="btn btn-danger" (click)="showDeactivateConfirm = true" *ngIf="!showDeactivateConfirm">
+ Deactivate Account
+ </button>
+
+ <div class="deactivate-confirm" *ngIf="showDeactivateConfirm">
+ <p class="confirm-text">Are you sure? You will be logged out immediately.</p>
+ <div class="confirm-actions">
+ <button class="btn btn-danger" (click)="deactivateAccount()">Yes, Deactivate</button>
+ <button class="btn btn-cancel" (click)="showDeactivateConfirm = false">Cancel</button>
+ </div>
+ </div>
+ </div>
+
+ <!-- Back Link -->
+ <div class="back-link">
+ <a routerLink="/dashboard" class="btn btn-ghost">← Back to Dashboard</a>
+ </div>
+ </div>
+</div>

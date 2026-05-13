@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>CodeSync.live — Collaborative IDE Built for the Browser</title>
+    <base href="/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="CodeSync Live brings your team into one editor. Real-time cursors, instant code execution, snapshots, and reviews — no installs, no config." />
+    <meta name="theme-color" content="#0a0e1a" />
+    <link rel="icon" type="image/x-icon" href="favicon.ico" />
+    <!-- Razorpay Checkout SDK (loaded globally so it's available on the pricing page) -->
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+    <!-- Monaco Editor AMD loader — must load before Angular bootstraps -->
+    <script src="/vs/loader.js"></script>
+    <script>
+      // Tell Monaco where to find its web workers
+      window.MonacoEnvironment = {
+        getWorkerUrl: function(workerId, label) {
+          return '/vs/base/worker/workerMain.js';
+        }
+      };
+      // Pre-configure the AMD loader paths
+      if (window.require) {
+        window.require.config({ paths: { vs: '/vs' } });
+      }
+    </script>
+  </head>
+  <body>
+    <app-root></app-root>
+  </body>
+</html>

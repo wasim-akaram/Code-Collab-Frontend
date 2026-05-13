@@ -1,0 +1,150 @@
+<div class="pricing-page">
+
+ <!-- Nav -->
+ <nav class="pricing-nav">
+ <a routerLink="/" class="logo"> CodeSync</a>
+ <div class="nav-links">
+ <a routerLink="/dashboard" *ngIf="isLoggedIn">Dashboard</a>
+ <a routerLink="/login" *ngIf="!isLoggedIn">Login</a>
+ <a routerLink="/register" *ngIf="!isLoggedIn" class="btn-nav-cta">Get Started</a>
+ </div>
+ </nav>
+
+ <!-- Hero -->
+ <div class="hero">
+ <span class="badge-pill">Simple, transparent pricing</span>
+ <h1>Choose your plan</h1>
+ <p class="hero-sub">Start free. Upgrade when you need more power.</p>
+
+ <div class="active-sub-banner" *ngIf="isPro">
+ You are on <strong>Pro</strong>
+ <span *ngIf="subscription?.endDate"> — active until {{ subscription!.endDate | date:'mediumDate' }}</span>
+ </div>
+ </div>
+
+ <!-- Plans -->
+ <section class="plans-section">
+ <div class="plans-grid">
+
+ <!-- FREE -->
+ <div class="plan-card plan-free">
+ <div class="plan-icon"></div>
+ <h2 class="plan-name">Free</h2>
+ <p class="plan-desc">Get started with CodeSync</p>
+ <div class="plan-price">
+ <span class="price-big">₹0</span>
+ <span class="price-period">forever</span>
+ </div>
+ <ul class="feature-list">
+ <li><span class="check"></span> Up to 5 projects</li>
+ <li><span class="check"></span> 1 private project</li>
+ <li><span class="check"></span> Code execution (10s timeout)</li>
+ <li><span class="check"></span> 3 collaborators per session</li>
+ <li><span class="check"></span> 20 snapshots per file</li>
+ <li><span class="check"></span> 1 MB file upload limit</li>
+ </ul>
+ <div class="plan-cta">
+ <a routerLink="/register" class="btn-plan btn-free" *ngIf="!isLoggedIn">Get Started Free</a>
+ <button class="btn-plan btn-current" *ngIf="isLoggedIn && !isPro" disabled> Your Current Plan</button>
+ <button class="btn-plan btn-current" *ngIf="isPro" disabled>Free Plan</button>
+ </div>
+ </div>
+
+ <!-- PRO -->
+ <div class="plan-card plan-pro">
+ <div class="popular-badge">Most Popular</div>
+ <div class="plan-icon"></div>
+ <h2 class="plan-name">Pro</h2>
+ <p class="plan-desc">Unlock the full power of CodeSync</p>
+ <div class="plan-price">
+ <span class="price-big">₹499</span>
+ <span class="price-period">/ month</span>
+ </div>
+ <p class="price-note">Billed monthly · Cancel anytime</p>
+ <ul class="feature-list">
+ <li><span class="check check-pro"></span> <strong>Unlimited</strong> projects</li>
+ <li><span class="check check-pro"></span> <strong>Unlimited</strong> private projects</li>
+ <li><span class="check check-pro"></span> Code execution (<strong>60s</strong> timeout)</li>
+ <li><span class="check check-pro"></span> <strong>20</strong> collaborators per session</li>
+ <li><span class="check check-pro"></span> <strong>Unlimited</strong> snapshots</li>
+ <li><span class="check check-pro"></span> <strong>10 MB</strong> file upload limit</li>
+ <li><span class="check check-pro"></span> Pro badge on profile</li>
+ </ul>
+
+ <!-- Messages shown right above the button -->
+ <div class="msg-banner success-banner" *ngIf="successMessage" style="font-size:0.85rem; padding:0.5rem; margin-bottom:0.5rem;">{{ successMessage }}</div>
+ <div class="msg-banner error-banner" *ngIf="errorMessage" style="font-size:0.85rem; padding:0.5rem; margin-bottom:0.5rem;">{{ errorMessage }}</div>
+
+ <!-- Order pre-creation error with retry -->
+ <div class="msg-banner error-banner" *ngIf="orderError && !errorMessage" style="font-size:0.85rem; padding:0.5rem; margin-bottom:0.5rem;">
+ {{ orderError }}
+ <button class="retry-btn" (click)="retryOrder()">Retry</button>
+ </div>
+
+ <div class="plan-cta">
+ <!-- Not logged in -->
+ <button class="btn-plan btn-pro" *ngIf="!isLoggedIn" (click)="upgradeToPro()">
+ Upgrade to Pro — ₹499/mo
+ </button>
+
+ <!-- Logged in, not Pro: order loading on page init -->
+ <button class="btn-plan btn-pro"
+ *ngIf="isLoggedIn && !isPro && orderLoading"
+ disabled>
+ <span class="spinner-txt"> Preparing checkout...</span>
+ </button>
+
+ <!-- Logged in, not Pro: order ready — instant Razorpay on click -->
+ <button class="btn-plan btn-pro"
+ *ngIf="isLoggedIn && !isPro && !orderLoading && orderReady && !isProcessing"
+ (click)="upgradeToPro()">
+ Upgrade to Pro — ₹499/mo
+ </button>
+
+ <!-- Logged in, not Pro: order failed — can still try on click -->
+ <button class="btn-plan btn-pro"
+ *ngIf="isLoggedIn && !isPro && !orderLoading && !orderReady && !isProcessing"
+ (click)="upgradeToPro()">
+ Upgrade to Pro — ₹499/mo
+ </button>
+
+ <!-- Processing state (creating order on-the-fly or verifying) -->
+ <button class="btn-plan btn-pro"
+ *ngIf="isLoggedIn && !isPro && isProcessing"
+ disabled>
+ <span class="spinner-txt"> {{ statusMessage || 'Processing...' }}</span>
+ </button>
+
+ <!-- Already Pro -->
+ <button class="btn-plan btn-current" *ngIf="isPro" disabled> Active Subscription</button>
+ </div>
+ <p class="secure-note"> Secure payment via Razorpay · UPI / Card / NetBanking</p>
+ </div>
+
+ </div>
+ </section>
+
+ <!-- FAQ -->
+ <section class="faq-section">
+ <h2>FAQ</h2>
+ <div class="faq-grid">
+ <div class="faq-item">
+ <h4>Can I cancel anytime?</h4>
+ <p>Yes. Pro access continues until end of billing period.</p>
+ </div>
+ <div class="faq-item">
+ <h4>Is payment secure?</h4>
+ <p>All payments go through Razorpay — PCI DSS compliant. We never store card details.</p>
+ </div>
+ <div class="faq-item">
+ <h4>What payment methods?</h4>
+ <p>UPI, credit/debit cards, net banking, and wallets.</p>
+ </div>
+ <div class="faq-item">
+ <h4>What if I downgrade?</h4>
+ <p>All your projects and files stay safe. Free limits apply going forward.</p>
+ </div>
+ </div>
+ </section>
+
+</div>

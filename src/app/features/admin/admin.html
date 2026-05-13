@@ -1,0 +1,421 @@
+<div class="admin-root">
+
+    <!-- Header -->
+    <header class="admin-header">
+        <div class="admin-header-left">
+            <button class="back-btn" (click)="goToDashboard()">
+                <span class="back-icon"></span>
+            </button>
+            <div class="admin-brand">
+                <span class="brand-icon"></span>
+                <div>
+                    <h1>Admin Panel</h1>
+                    <p class="admin-sub">CodeSync Platform Management</p>
+                </div>
+            </div>
+        </div>
+        <div class="admin-header-right">
+            <span class="admin-badge">ADMIN</span>
+            <span class="admin-email">{{ currentUserEmail }}</span>
+        </div>
+    </header>
+
+    <!-- Alert bar -->
+    @if (error()) {
+    <div class="alert alert-error">
+        <span> {{ error() }}</span>
+        <button class="alert-close" (click)="error.set('')"></button>
+    </div>
+    }
+    @if (success()) {
+    <div class="alert alert-success">
+        <span> {{ success() }}</span>
+    </div>
+    }
+
+    <!-- Nav tabs -->
+    <nav class="admin-nav">
+        <button class="nav-tab" [class.active]="activeTab() === 'overview'" (click)="setTab('overview')">
+            <span class="tab-icon"></span> Overview
+        </button>
+        <button class="nav-tab" [class.active]="activeTab() === 'users'" (click)="setTab('users')">
+            <span class="tab-icon"></span> Users
+        </button>
+        <button class="nav-tab" [class.active]="activeTab() === 'projects'" (click)="setTab('projects')">
+            <span class="tab-icon"></span> Projects
+        </button>
+        <button class="nav-tab" [class.active]="activeTab() === 'sessions'" (click)="setTab('sessions')">
+            <span class="tab-icon"></span> Sessions
+        </button>
+        <button class="nav-tab" [class.active]="activeTab() === 'executions'" (click)="setTab('executions')">
+            <span class="tab-icon"></span> Executions
+        </button>
+        <button class="nav-tab" [class.active]="activeTab() === 'broadcast'" (click)="setTab('broadcast')">
+            <span class="tab-icon"></span> Broadcast
+        </button>
+    </nav>
+
+    <!-- Loading bar -->
+    @if (loading()) {
+    <div class="loading-bar">
+        <div class="loading-fill"></div>
+    </div>
+    }
+
+    <!-- ═══ OVERVIEW ═══ -->
+    @if (activeTab() === 'overview') {
+    <div class="tab-content">
+        <h2 class="section-title">Platform Overview</h2>
+
+        <div class="stats-grid">
+            <!-- Users card -->
+            <div class="stat-card">
+                <div class="stat-icon users"></div>
+                <div class="stat-body">
+                    <p class="stat-label">Total Users</p>
+                    <p class="stat-value">{{ userStats()?.totalUsers ?? '—' }}</p>
+                </div>
+                <div class="stat-sub">
+                    <span class="badge badge-success">{{ userStats()?.activeUsers ?? 0 }} Active</span>
+                    <span class="badge badge-danger">{{ userStats()?.suspendedUsers ?? 0 }} Suspended</span>
+                </div>
+            </div>
+
+            <!-- Pro / Roles card -->
+            <div class="stat-card">
+                <div class="stat-icon pro"></div>
+                <div class="stat-body">
+                    <p class="stat-label">Pro Subscribers</p>
+                    <p class="stat-value">{{ userStats()?.proUsers ?? '—' }}</p>
+                </div>
+                <div class="stat-sub">
+                    <span class="badge badge-info">{{ userStats()?.adminCount ?? 0 }} Admins</span>
+                    <span class="badge badge-muted">{{ (userStats()?.totalUsers ?? 0) - (userStats()?.proUsers ?? 0) }}
+                        Free</span>
+                </div>
+            </div>
+
+            <!-- Projects card -->
+            <div class="stat-card">
+                <div class="stat-icon projects"></div>
+                <div class="stat-body">
+                    <p class="stat-label">Total Projects</p>
+                    <p class="stat-value">{{ projectStats()?.totalProjects ?? '—' }}</p>
+                </div>
+                <div class="stat-sub">
+                    <span class="badge badge-success">{{ projectStats()?.publicProjects ?? 0 }} Public</span>
+                    <span class="badge badge-muted">{{ (projectStats()?.totalProjects ?? 0) -
+                        (projectStats()?.publicProjects ?? 0) - (projectStats()?.archivedProjects ?? 0) }}
+                        Private</span>
+                    <span class="badge badge-warning">{{ projectStats()?.archivedProjects ?? 0 }} Archived</span>
+                </div>
+            </div>
+
+            <!-- Executions card -->
+            <div class="stat-card">
+                <div class="stat-icon executions"></div>
+                <div class="stat-body">
+                    <p class="stat-label">Total Executions</p>
+                    <p class="stat-value">{{ execStats()?.totalExecutions ?? '—' }}</p>
+                </div>
+                <div class="stat-sub">
+                    <span class="badge badge-success">{{ execStats()?.completed ?? 0 }} OK</span>
+                    <span class="badge badge-danger">{{ execStats()?.failed ?? 0 }} Failed</span>
+                    <span class="badge badge-info">{{ execStats()?.running ?? 0 }} Running</span>
+                </div>
+            </div>
+
+            <!-- Quick actions card -->
+            <!--THE QUICK ACTION CARD IS COMMENTED OUT COZ IT NOT NEEDED FOR NOW-->
+            <!-- <div class="stat-card action-card">
+                <p class="stat-label">Quick Actions</p>
+                <div class="action-btns">
+                    <button class="action-btn" (click)="setTab('users')">Manage Users</button>
+                    <button class="action-btn" (click)="setTab('projects')">View Projects</button>
+                    <button class="action-btn" (click)="setTab('broadcast')">Broadcast</button>
+                </div>
+            </div> -->
+        </div>
+    </div>
+    }
+
+    <!-- ═══ USERS ═══ -->
+    @if (activeTab() === 'users') {
+    <div class="tab-content">
+        <div class="section-header">
+            <h2 class="section-title">User Management</h2>
+            <div class="filter-row">
+                <select class="filter-select" [(ngModel)]="userPlanFilter">
+                    <option value="ALL">All Plans</option>
+                    <option value="PRO"> Pro Only</option>
+                    <option value="FREE">Free Only</option>
+                </select>
+                <input class="search-input" type="text" placeholder="Search by email or username…"
+                    [(ngModel)]="userSearch" />
+            </div>
+        </div>
+
+        <div class="table-wrap">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Username</th>
+                        <th>Email</th>
+                        <th>Plan</th>
+                        <th>Role</th>
+                        <th>Status</th>
+                        <th>Joined</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @for (user of filteredUsers(); track user.id) {
+                    <tr [class.suspended]="!user.active">
+                        <td class="id-cell">{{ user.id }}</td>
+                        <td><strong>{{ user.username }}</strong></td>
+                        <td class="email-cell">{{ user.email }}</td>
+                        <td>
+                            @if (user.plan === 'PRO') {
+                            <span class="badge badge-pro"> PRO</span>
+                            } @else {
+                            <span class="badge badge-muted">FREE</span>
+                            }
+                        </td>
+                        <td>
+                            <span class="badge" [class.badge-warning]="user.role === 'ADMIN'"
+                                [class.badge-muted]="user.role !== 'ADMIN'">
+                                {{ user.role }}
+                            </span>
+                        </td>
+                        <td>
+                            <span class="badge" [class.badge-success]="user.active" [class.badge-danger]="!user.active">
+                                {{ user.active ? 'Active' : 'Suspended' }}
+                            </span>
+                        </td>
+                        <td class="date-cell">{{ formatDate(user.createdAt) }}</td>
+                        <td class="actions-cell">
+                            <button class="btn-action btn-warning" (click)="toggleSuspend(user)"
+                                [disabled]="user.email === currentUserEmail"
+                                [title]="user.active ? 'Suspend user' : 'Unsuspend user'">
+                                {{ user.active ? ' Suspend' : ' Unsuspend' }}
+                            </button>
+                            <button class="btn-action btn-danger" (click)="deleteUser(user)"
+                                [disabled]="user.email === currentUserEmail" title="Permanently delete user">
+                                Delete
+                            </button>
+                        </td>
+                    </tr>
+                    }
+                    @empty {
+                    <tr>
+                        <td colspan="8" class="empty-state">No users found</td>
+                    </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+    }
+
+    <!-- ═══ PROJECTS ═══ -->
+    @if (activeTab() === 'projects') {
+    <div class="tab-content">
+        <div class="section-header">
+            <h2 class="section-title">Project Management</h2>
+            <div class="filter-row">
+                <select class="filter-select" [(ngModel)]="projectVisFilter">
+                    <option value="ALL">All Visibility</option>
+                    <option value="PUBLIC">Public Only</option>
+                    <option value="PRIVATE">Private Only</option>
+                </select>
+                <input class="search-input" type="text" placeholder="Search by project name…"
+                    [(ngModel)]="projectSearch" />
+            </div>
+        </div>
+
+        <div class="table-wrap">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Name</th>
+                        <th>Owner</th>
+                        <th>Language</th>
+                        <th>Visibility</th>
+                        <th>Stars</th>
+                        <th>Forks</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @for (project of filteredProjects(); track project.id) {
+                    <tr>
+                        <td class="id-cell">{{ project.id }}</td>
+                        <td><strong>{{ project.name }}</strong></td>
+                        <td class="email-cell">{{ project.ownerEmail }}</td>
+                        <td><span class="badge badge-info">{{ project.language }}</span></td>
+                        <td>
+                            <span class="badge" [class.badge-success]="project.visibility === 'PUBLIC'"
+                                [class.badge-muted]="project.visibility !== 'PUBLIC'">
+                                {{ project.visibility }}
+                            </span>
+                        </td>
+                        <td> {{ project.starCount }}</td>
+                        <td> {{ project.forkCount }}</td>
+                        <td class="actions-cell">
+                            <button class="btn-action btn-danger" (click)="forceDeleteProject(project)">
+                                Force Delete
+                            </button>
+                        </td>
+                    </tr>
+                    }
+                    @empty {
+                    <tr>
+                        <td colspan="8" class="empty-state">No projects found</td>
+                    </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+    }
+
+    <!-- ═══ SESSIONS ═══ -->
+    @if (activeTab() === 'sessions') {
+    <div class="tab-content">
+        <h2 class="section-title">Collaboration Sessions</h2>
+        <div class="table-wrap">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Session ID</th>
+                        <th>Project ID</th>
+                        <th>Language</th>
+                        <th>Status</th>
+                        <th>Participants</th>
+                        <th>Created</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @for (session of sessions(); track session.sessionId) {
+                    <tr>
+                        <td class="id-cell mono">{{ session.sessionId.substring(0, 8) }}…</td>
+                        <td>{{ session.projectId }}</td>
+                        <td>{{ session.language || '—' }}</td>
+                        <td>
+                            <span class="badge" [class]="sessionStatusClass(session.status)">
+                                {{ session.status }}
+                            </span>
+                        </td>
+                        <td> {{ session.participantCount }} / {{ session.maxParticipants }}</td>
+                        <td class="date-cell">{{ formatDate(session.createdAt) }}</td>
+                        <td class="actions-cell">
+                            <button class="btn-action btn-danger" [disabled]="session.status === 'ENDED'"
+                                (click)="forceEndSession(session)">
+                                Force End
+                            </button>
+                        </td>
+                    </tr>
+                    }
+                    @empty {
+                    <tr>
+                        <td colspan="7" class="empty-state">No sessions found</td>
+                    </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+    }
+
+    <!-- ═══ EXECUTIONS ═══ -->
+    @if (activeTab() === 'executions') {
+    <div class="tab-content">
+        <div class="section-header">
+            <h2 class="section-title">Execution Jobs</h2>
+            <select class="filter-select" [(ngModel)]="execFilter">
+                <option value="ALL">All Statuses</option>
+                <option value="COMPLETED">Completed</option>
+                <option value="RUNNING">Running</option>
+                <option value="QUEUED">Queued</option>
+                <option value="FAILED">Failed</option>
+                <option value="CANCELLED">Cancelled</option>
+            </select>
+        </div>
+
+        <div class="table-wrap">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Job ID</th>
+                        <th>User</th>
+                        <th>Language</th>
+                        <th>Status</th>
+                        <th>Exit Code</th>
+                        <th>Duration</th>
+                        <th>Created</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @for (job of filteredExecutions(); track job.jobId) {
+                    <tr>
+                        <td class="id-cell mono">{{ job.jobId.substring(0, 8) }}…</td>
+                        <td class="email-cell">{{ job.userEmail }}</td>
+                        <td><span class="badge badge-info">{{ job.language }}</span></td>
+                        <td>
+                            <span class="badge" [class]="execStatusClass(job.status)">
+                                {{ job.status }}
+                            </span>
+                        </td>
+                        <td>{{ job.exitCode ?? '—' }}</td>
+                        <td>{{ job.executionTimeMs ? job.executionTimeMs + 'ms' : '—' }}</td>
+                        <td class="date-cell">{{ formatDate(job.createdAt) }}</td>
+                    </tr>
+                    }
+                    @empty {
+                    <tr>
+                        <td colspan="7" class="empty-state">No executions found</td>
+                    </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+    }
+
+    <!-- ═══ BROADCAST ═══ -->
+    @if (activeTab() === 'broadcast') {
+    <div class="tab-content">
+        <h2 class="section-title">Broadcast Notification</h2>
+        <p class="section-desc">Send a platform-wide notification to all users.</p>
+
+        <div class="broadcast-form">
+            <div class="form-group">
+                <label>Title</label>
+                <input type="text" class="form-input" placeholder="Notification title…" [(ngModel)]="broadcastTitle"
+                    maxlength="80" />
+            </div>
+            <div class="form-group">
+                <label>Message</label>
+                <textarea class="form-textarea" placeholder="Your message to all users…" [(ngModel)]="broadcastMessage"
+                    rows="6" maxlength="500"></textarea>
+                <span class="char-count">{{ broadcastMessage.length }} / 500</span>
+            </div>
+            <button class="broadcast-btn" (click)="sendBroadcast()"
+                [disabled]="loading() || !broadcastTitle.trim() || !broadcastMessage.trim()">
+                @if (loading()) {
+                <span class="spinner"></span> Sending…
+                } @else {
+                Send Broadcast
+                }
+            </button>
+            @if (broadcastSent) {
+            <div class="broadcast-confirm"> Broadcast sent successfully to all users!</div>
+            }
+        </div>
+    </div>
+    }
+
+</div>

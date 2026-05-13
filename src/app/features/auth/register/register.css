@@ -1,0 +1,50 @@
+/* Reusing login.css, just some specific overrides */
+.register-card {
+  max-width: 480px;
+}
+
+.otp-input {
+  text-align: center;
+  font-size: 1.5rem;
+  letter-spacing: 0.5rem;
+  font-family: var(--font-mono);
+}
+
+/* OTP Timer */
+.otp-timer-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.6rem 1rem;
+  background: var(--accent-light);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-sm);
+  font-size: 0.875rem;
+  color: var(--accent-primary);
+}
+
+.otp-timer-row strong {
+  font-family: var(--font-mono);
+  font-weight: 700;
+}
+
+/* Back link */
+.btn-back-link {
+  display: block;
+  width: 100%;
+  text-align: center;
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 0.5rem;
+  margin-top: 0.25rem;
+  transition: color var(--transition-fast);
+}
+
+.btn-back-link:hover {
+  color: var(--accent-primary);
+}

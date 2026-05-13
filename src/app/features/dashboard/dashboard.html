@@ -1,0 +1,377 @@
+<div class="dashboard-layout">
+ <!-- Sidebar -->
+ <aside class="sidebar" id="dashboard-sidebar">
+ <div class="sidebar-header">
+ <a routerLink="/" class="logo">
+ <span class="logo-icon-wrapper">
+ <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+ <polyline points="16 18 22 12 16 6"></polyline>
+ <polyline points="8 6 2 12 8 18"></polyline>
+ </svg>
+ </span>
+ <span class="logo-text">CodeSync<span class="logo-accent">.live</span></span>
+ </a>
+ </div>
+
+ <nav class="sidebar-nav">
+ <a routerLink="/dashboard" class="nav-item active" id="nav-dashboard">
+ <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+ <rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect>
+ <rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect>
+ </svg>
+ Dashboard
+ </a>
+ <a routerLink="/explore" class="nav-item" id="nav-explore">
+ <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+ <circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+ </svg>
+ Explore
+ </a>
+ <a routerLink="/projects/new" class="nav-item" id="nav-new-project">
+ <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+ <line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line>
+ </svg>
+ New Project
+ </a>
+ @if (isAdmin) {
+ <a routerLink="/admin" class="nav-item nav-item-admin" id="nav-admin">
+ <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+ <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+ </svg>
+ Admin Panel
+ <span class="nav-admin-badge">ADMIN</span>
+ </a>
+ }
+ </nav>
+
+ <!-- Upgrade to Pro CTA (shown only for free users) -->
+ <div class="upgrade-cta" *ngIf="!authService.isPro()">
+ <a routerLink="/pricing" class="upgrade-btn">
+ <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+ Upgrade to Pro
+ </a>
+ <p class="upgrade-hint">Unlimited projects &amp; more</p>
+ </div>
+ <!-- Pro badge (shown for Pro users) -->
+ <div class="pro-active-badge" *ngIf="authService.isPro()">
+ <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+ PRO
+ </div>
+
+ <div class="sidebar-footer">
+ <button class="nav-item logout-btn" (click)="logout()" id="logout-btn">
+ <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+ <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+ <polyline points="16 17 21 12 16 7"></polyline>
+ <line x1="21" y1="12" x2="9" y2="12"></line>
+ </svg>
+ Log Out
+ </button>
+ </div>
+ </aside>
+
+ <!-- Main Content -->
+ <main class="main-content">
+ <header class="topbar" id="dashboard-topbar">
+ <div class="search-bar">
+ <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+ <circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+ </svg>
+ <input type="text" placeholder="Search projects..." id="dashboard-search" (input)="onSearch($event)" />
+ </div>
+ <div class="user-profile" (click)="$event.stopPropagation()">
+ <!-- Notification Bell -->
+ <div class="notif-wrapper" style="position:relative; display:inline-block; margin-right:12px;">
+ <button class="icon-btn notif-bell" (click)="toggleNotifPanel()" title="Notifications"
+ style="position:relative; font-size:1.25rem; background:none; border:none; cursor:pointer; padding:6px;">
+ <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+ <span *ngIf="unreadCount > 0" class="notif-badge"
+ style="position:absolute; top:-2px; right:-4px; background:#ef4444; color:#fff; border-radius:50%; min-width:18px; height:18px; font-size:0.65rem; display:flex; align-items:center; justify-content:center; font-weight:700; line-height:1;">
+ {{ unreadCount > 99 ? '99+' : unreadCount }}
+ </span>
+ </button>
+
+ <!-- Notification Dropdown -->
+ <div *ngIf="showNotifPanel" class="notif-dropdown"
+ style="position:absolute; right:0; top:100%; margin-top:8px; width:340px; max-height:420px; overflow-y:auto; background:var(--bg-card, #1e1e2e); border:1px solid var(--border, #333); border-radius:12px; box-shadow:0 8px 32px rgba(0,0,0,0.4); z-index:1000; padding:0;">
+ <div style="padding:12px 16px; border-bottom:1px solid var(--border, #333); display:flex; justify-content:space-between; align-items:center;">
+ <span style="font-weight:600; font-size:0.9rem;">Notifications</span>
+ <div style="display:flex; gap:8px;">
+ <button *ngIf="unreadCount > 0" (click)="markAllNotifsRead()" style="background:none; border:none; color:var(--accent, #60a5fa); cursor:pointer; font-size:0.75rem;"> All</button>
+ <button *ngIf="notifications.length > 0" (click)="clearAllNotifs()" style="background:none; border:none; color:#ef4444; cursor:pointer; font-size:0.75rem;"></button>
+ </div>
+ </div>
+ <div *ngIf="isLoadingNotifs" style="padding:24px; text-align:center; color:var(--text-secondary, #888);">Loading...</div>
+ <div *ngIf="!isLoadingNotifs && notifications.length === 0" style="padding:24px; text-align:center; color:var(--text-secondary, #888);">
+ <span>No notifications</span>
+ <p style="margin:8px 0 0; font-size:0.85rem;">You're all caught up!</p>
+ </div>
+ <div *ngFor="let notif of notifications"
+ (click)="markNotifAsRead(notif, $event)"
+ [style.background]="notif.isRead ? 'transparent' : 'rgba(96,165,250,0.08)'"
+ style="padding:10px 16px; border-bottom:1px solid var(--border, #222); cursor:pointer; display:flex; align-items:flex-start; gap:10px; transition:background 0.15s;">
+ <span style="font-size:1.1rem;">{{ getNotifIcon(notif.type) }}</span>
+ <div style="flex:1; min-width:0;">
+ <p style="margin:0; font-size:0.82rem; line-height:1.4; color:var(--text-primary, #e0e0e0);">{{ notif.message }}</p>
+ <span style="font-size:0.7rem; color:var(--text-secondary, #888);">{{ getTimeAgo(notif.createdAt) }}</span>
+ </div>
+ <button (click)="deleteNotif(notif, $event)" title="Dismiss"
+ style="background:none; border:none; color:#888; cursor:pointer; font-size:1rem; padding:2px;">×</button>
+ </div>
+ </div>
+ </div>
+
+ <a class="profile-summary" id="user-profile" routerLink="/profile" title="View your profile">
+ <div class="avatar" id="user-avatar">{{ profileInitial }}</div>
+ <div class="profile-text">
+ <span class="profile-name">
+ {{ currentUser }}
+ <span class="pro-badge" *ngIf="authService.isPro()">PRO</span>
+ </span>
+ <span class="profile-sub">View profile</span>
+ </div>
+ </a>
+ </div>
+ </header>
+
+ <div class="content-area">
+ <div class="page-header">
+ <div>
+ <h1 class="page-title">My Projects</h1>
+ <p class="page-subtitle">Manage and open your coding projects.</p>
+ </div>
+ <a class="btn-primary new-project-btn" routerLink="/projects/new" id="new-project-btn">
+ <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+ <line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line>
+ </svg>
+ New Project
+ </a>
+ </div>
+
+ <!-- Tabs -->
+ <div class="tab-bar">
+ <button class="tab-btn" [class.active]="activeTab === 'active'" (click)="switchTab('active')" id="tab-active">
+ Active
+ <span class="tab-count">{{ projects.length }}</span>
+ </button>
+ <button class="tab-btn" [class.active]="activeTab === 'archived'" (click)="switchTab('archived')" id="tab-archived">
+ Archived
+ <span class="tab-count">{{ archivedProjects.length }}</span>
+ </button>
+ </div>
+
+ <!-- Notifications -->
+ <div *ngIf="error" class="alert alert-error" id="dashboard-error">{{ error }}</div>
+ <div *ngIf="actionMessage" class="alert alert-success" id="dashboard-success">{{ actionMessage }}</div>
+
+ <!-- Inline Confirmation Bar (replaces window.confirm) -->
+ @if (confirmProjectId !== null) {
+ <div class="confirm-bar" id="confirm-bar">
+ <span class="confirm-text">
+ <strong>{{ confirmAction === 'archive' ? 'Archive' : 'Delete' }}</strong>
+ "{{ confirmProjectName }}"?
+ {{ confirmAction === 'archive' ? 'It will be hidden from your active list.' : 'This cannot be undone.' }}
+ </span>
+ <div class="confirm-actions">
+ <button class="btn-confirm-cancel" (click)="cancelConfirm()" id="confirm-cancel-btn">Cancel</button>
+ <button class="btn-confirm-ok" [class.btn-confirm-danger]="confirmAction === 'delete'" (click)="executeConfirm()" id="confirm-ok-btn">
+ {{ confirmAction === 'archive' ? 'Archive' : 'Delete' }}
+ </button>
+ </div>
+ </div>
+ }
+
+ <!-- Loading -->
+ <div *ngIf="isLoading" class="loading-state" id="dashboard-loading">
+ <div class="spinner"></div>
+ <p>Loading projects...</p>
+ </div>
+
+
+ <!-- Active Projects -->
+ <div *ngIf="!isLoading && activeTab === 'active'" class="projects-grid" id="active-projects-grid">
+ <!-- Use <a> not <div> with routerLink: anchor tags navigate on single click,
+ divs can require two clicks when Angular's CD runs between pointer events. -->
+ <a class="project-card" *ngFor="let project of filteredProjects"
+ [routerLink]="['/editor', project.id || project.projectId]"
+ [class.shared-project]="!isOwner(project)"
+ style="cursor: pointer; text-decoration: none; display: block;">
+ <div class="project-header">
+ <div class="project-title-area">
+ <h3>{{ project.name }}</h3>
+ <span class="badge" [class.badge-private]="project.visibility === 'PRIVATE'">
+ {{ project.visibility }}
+ </span>
+ <span *ngIf="project.parentProjectId" class="badge badge-fork">FORK</span>
+ <span *ngIf="!isOwner(project)" class="badge badge-shared">SHARED</span>
+ </div>
+ <div class="project-actions">
+ <!-- Star -->
+ <button type="button" class="icon-action star-btn"
+ (mousedown)="$event.stopPropagation()"
+ [class.starred]="$any(project)._starred"
+ [title]="$any(project)._starred ? 'Unstar' : 'Star'"
+ [disabled]="starringProjectId === (project.id || project.projectId)"
+ (click)="toggleStar($event, project)">
+ <svg width="15" height="15" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+ [attr.fill]="$any(project)._starred ? 'currentColor' : 'none'">
+ <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+ </svg>
+ <span>{{ project.starCount ?? 0 }}</span>
+ </button>
+ <!-- Edit (owner only) -->
+ <button *ngIf="isOwner(project)" type="button" class="icon-action edit-btn" title="Edit project"
+ (mousedown)="$event.stopPropagation()"
+ (click)="openEdit($event, project)">
+ <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+ <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+ <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+ </svg>
+ </button>
+ <!-- Archive (owner only) -->
+ <button *ngIf="isOwner(project)" type="button" class="icon-action archive-btn" title="Archive project"
+ (mousedown)="$event.stopPropagation()"
+ [disabled]="archivingProjectId === (project.id || project.projectId)"
+ (click)="archiveProject($event, project)">
+ <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+ <polyline points="21 8 21 21 3 21 3 8"></polyline>
+ <rect x="1" y="3" width="22" height="5"></rect>
+ <line x1="10" y1="12" x2="14" y2="12"></line>
+ </svg>
+ </button>
+ <!-- Delete (owner only) -->
+ <button *ngIf="isOwner(project)" type="button" class="icon-action danger" title="Delete project"
+ (mousedown)="$event.stopPropagation()"
+ [disabled]="deletingProjectId === (project.id || project.projectId)"
+ (click)="deleteProject($event, project)">
+ <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+ <polyline points="3 6 5 6 21 6"></polyline>
+ <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path>
+ <path d="M10 11v6"></path><path d="M14 11v6"></path>
+ <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"></path>
+ </svg>
+ </button>
+ </div>
+ </div>
+ <p class="project-desc">{{ project.description || 'No description provided.' }}</p>
+ <div class="project-footer">
+ <span class="lang-tag">{{ project.language }}</span>
+ <span *ngIf="!isOwner(project)" class="owner-tag">by {{ project.ownerEmail }}</span>
+ <span class="stat-tag">
+ <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+ <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+ </svg>
+ {{ project.starCount ?? 0 }}
+ </span>
+ <span class="stat-tag">
+ <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+ <circle cx="12" cy="18" r="3"></circle><circle cx="6" cy="6" r="3"></circle><circle cx="18" cy="6" r="3"></circle>
+ <path d="M18 9v1a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V9"></path><line x1="12" y1="12" x2="12" y2="15"></line>
+ </svg>
+ {{ project.forkCount ?? 0 }}
+ </span>
+ <span class="updated-time">{{ formatDate(project.updatedAt) }}</span>
+ </div>
+ </a>
+
+ <!-- Empty State -->
+ <div class="empty-state" *ngIf="filteredProjects.length === 0" id="empty-state">
+ <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="empty-icon-svg">
+ <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+ </svg>
+ <h3>No projects found</h3>
+ <p>Create your first project to get started.</p>
+ <a class="btn-primary" routerLink="/projects/new">Create Project</a>
+ </div>
+ </div>
+
+ <!-- Archived Projects -->
+ <div *ngIf="activeTab === 'archived'" class="projects-grid" id="archived-projects-grid">
+ <div *ngIf="isLoadingArchived" class="loading-state">
+ <div class="spinner"></div><p>Loading archived projects...</p>
+ </div>
+
+ <div class="project-card archived-card" *ngFor="let project of archivedProjects"
+ style="cursor:default;">
+ <div class="project-header">
+ <div class="project-title-area">
+ <h3>{{ project.name }}</h3>
+ <span class="badge badge-archived">ARCHIVED</span>
+ </div>
+ <div class="project-actions">
+ <button type="button" class="icon-action danger" title="Delete project permanently"
+ [disabled]="deletingProjectId === (project.id || project.projectId)"
+ (click)="deleteProject($event, project)">
+ <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+ <polyline points="3 6 5 6 21 6"></polyline>
+ <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path>
+ <path d="M10 11v6"></path><path d="M14 11v6"></path>
+ <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"></path>
+ </svg>
+ </button>
+ </div>
+ </div>
+ <p class="project-desc">{{ project.description || 'No description provided.' }}</p>
+ <div class="project-footer">
+ <span class="lang-tag">{{ project.language }}</span>
+ <span class="updated-time">Archived �- {{ formatDate(project.updatedAt) }}</span>
+ </div>
+ </div>
+
+ <div class="empty-state" *ngIf="!isLoadingArchived && archivedProjects.length === 0">
+ <h3>No archived projects</h3>
+ <p>Projects you archive will appear here.</p>
+ </div>
+ </div>
+ </div>
+ </main>
+</div>
+
+<!-- Edit Project Modal -->
+<div class="modal-overlay" *ngIf="showEditModal" (click)="closeEdit()" id="edit-modal-overlay">
+ <div class="modal" (click)="$event.stopPropagation()" id="edit-modal">
+ <div class="modal-header">
+ <h2>Edit Project</h2>
+ <button class="modal-close" (click)="closeEdit()" id="edit-modal-close"></button>
+ </div>
+
+ <form [formGroup]="editForm" (ngSubmit)="saveEdit()" class="modal-form">
+ <div class="form-group">
+ <label for="edit-name">Project Name</label>
+ <input id="edit-name" type="text" formControlName="name" placeholder="Project name" />
+ <span class="field-error" *ngIf="editForm.get('name')?.touched && editForm.get('name')?.invalid">Name is required</span>
+ </div>
+
+ <div class="form-group">
+ <label for="edit-description">Description</label>
+ <textarea id="edit-description" formControlName="description" placeholder="What is this project about?" rows="3"></textarea>
+ </div>
+
+ <div class="form-row">
+ <div class="form-group">
+ <label for="edit-language">Language</label>
+ <select id="edit-language" formControlName="language">
+ <option *ngFor="let lang of languages" [value]="lang">{{ lang }}</option>
+ </select>
+ </div>
+ <div class="form-group">
+ <label for="edit-visibility">Visibility</label>
+ <select id="edit-visibility" formControlName="visibility">
+ <option value="PUBLIC">Public</option>
+ <option value="PRIVATE">Private</option>
+ </select>
+ </div>
+ </div>
+
+ <div *ngIf="editError" class="alert alert-error">{{ editError }}</div>
+
+ <div class="modal-footer">
+ <button type="button" class="btn-secondary" (click)="closeEdit()">Cancel</button>
+ <button type="submit" class="btn-primary" [disabled]="isUpdating || editForm.invalid" id="save-edit-btn">
+ <span *ngIf="isUpdating" class="spinner-sm"></span>
+ {{ isUpdating ? 'Saving...' : 'Save Changes' }}
+ </button>
+ </div>
+ </form>
+ </div>
+</div>

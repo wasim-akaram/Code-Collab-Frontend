@@ -1,0 +1,99 @@
+<div class="dashboard-layout">
+ <!-- Same Sidebar for consistency -->
+ <aside class="sidebar glass-panel">
+ <div class="sidebar-header">
+ <div class="logo">
+ <span class="logo-icon">&lt;/&gt;</span>
+ <span class="logo-text">CodeSync</span>
+ </div>
+ </div>
+ 
+ <nav class="sidebar-nav">
+ <a routerLink="/dashboard" class="nav-item">
+ <i class="icon"></i> Dashboard
+ </a>
+ <a routerLink="/projects" class="nav-item active">
+ <i class="icon"></i> My Projects
+ </a>
+ </nav>
+ </aside>
+
+ <!-- Main Content -->
+ <main class="main-content">
+ <div class="content-area flex-center">
+ 
+ <div class="glass-panel form-card">
+ <div class="form-header">
+ <button class="back-btn" routerLink="/dashboard">← Back</button>
+ <h2>Create New Project</h2>
+ <p>Set up a new workspace to start coding.</p>
+ </div>
+
+ <form [formGroup]="projectForm" (ngSubmit)="onSubmit()" class="project-form">
+ <div class="form-group">
+ <label for="name">Project Name</label>
+ <input 
+ type="text" 
+ id="name" 
+ formControlName="name" 
+ placeholder="e.g., awesome-app"
+ [class.invalid]="projectForm.get('name')?.invalid && projectForm.get('name')?.touched"
+ />
+ <div class="field-error" *ngIf="projectForm.get('name')?.touched && projectForm.get('name')?.hasError('required')">
+ Project name is required.
+ </div>
+ <div class="field-error" *ngIf="projectForm.get('name')?.touched && projectForm.get('name')?.hasError('maxlength')">
+ Project name must be 100 characters or fewer.
+ </div>
+ </div>
+
+ <div class="form-group">
+ <label for="description">Description (Optional)</label>
+ <textarea 
+ id="description" 
+ formControlName="description" 
+ placeholder="Briefly describe what this project is about..."
+ rows="3"
+ ></textarea>
+ <div class="field-error" *ngIf="projectForm.get('description')?.touched && projectForm.get('description')?.hasError('maxlength')">
+ Description must be 500 characters or fewer.
+ </div>
+ </div>
+
+ <div class="form-row">
+ <div class="form-group flex-1">
+ <label for="language">Language</label>
+ <div class="select-wrapper">
+ <select id="language" formControlName="language">
+ <option *ngFor="let lang of languages" [value]="lang">{{ lang }}</option>
+ </select>
+ </div>
+ </div>
+
+ <div class="form-group flex-1">
+ <label for="visibility">Visibility</label>
+ <div class="select-wrapper">
+ <select id="visibility" formControlName="visibility">
+ <option *ngFor="let vis of visibilities" [value]="vis">{{ vis }}</option>
+ </select>
+ </div>
+ </div>
+ </div>
+
+ <div *ngIf="error" class="error-message">
+ {{ error }}
+ </div>
+
+ <div class="form-actions">
+ <button type="button" class="btn-secondary" routerLink="/dashboard">Cancel</button>
+ <button type="submit" class="btn-primary" [disabled]="projectForm.invalid || isLoading">
+ <span *ngIf="!isLoading">Create Project</span>
+ <span *ngIf="isLoading" class="spinner"></span>
+ </button>
+ </div>
+ </form>
+ </div>
+
+ </div>
+ </main>
+</div>

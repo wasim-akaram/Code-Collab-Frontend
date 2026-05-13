@@ -1,0 +1,265 @@
+<div class="explore-layout">
+ <app-navbar></app-navbar>
+
+ <div class="explore-container">
+ <!-- Header -->
+ <div class="explore-header" id="explore-header">
+ <div class="explore-title-area">
+ <h1 class="explore-title">Explore</h1>
+ <p class="explore-subtitle">Discover what the community is building.</p>
+ </div>
+
+ <!-- Main Tabs: Projects / Users -->
+ <div class="main-tabs">
+ <a class="main-tab" routerLink="/dashboard" id="tab-dashboard">
+ <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+ <path d="M3 11l9-8 9 8"></path>
+ <path d="M5 10v10h14V10"></path>
+ <path d="M9 20v-6h6v6"></path>
+ </svg>
+ Dashboard
+ </a>
+ <button class="main-tab" [class.active]="activeTab === 'projects'" (click)="setTab('projects')"
+ id="tab-projects">
+ <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+ <path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"></path>
+ </svg>
+ Projects
+ </button>
+ <button class="main-tab" [class.active]="activeTab === 'users'" (click)="setTab('users')" id="tab-users">
+ <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+ <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"></path>
+ <circle cx="9" cy="7" r="4"></circle>
+ <path d="M23 21v-2a4 4 0 00-3-3.87"></path>
+ <path d="M16 3.13a4 4 0 010 7.75"></path>
+ </svg>
+ Users
+ </button>
+ </div>
+ </div>
+
+
+ <!-- PROJECTS TAB -->
+
+ <ng-container *ngIf="activeTab === 'projects'">
+ <div class="explore-controls">
+ <!-- Sort Tabs -->
+ <div class="sort-tabs">
+ <button class="sort-btn" [class.active]="sortMode === 'latest'" (click)="setSortMode('latest')"
+ id="sort-latest">
+ <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+ <circle cx="12" cy="12" r="10"></circle>
+ <polyline points="12 6 12 12 16 14"></polyline>
+ </svg>
+ Latest
+ </button>
+ <button class="sort-btn" [class.active]="sortMode === 'trending'" (click)="setSortMode('trending')"
+ id="sort-trending">
+ <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+ <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline>
+ <polyline points="17 6 23 6 23 12"></polyline>
+ </svg>
+ Trending
+ </button>
+ </div>
+
+ <!-- Search -->
+ <div class="explore-search">
+ <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+ stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+ <circle cx="11" cy="11" r="8"></circle>
+ <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+ </svg>
+ <input type="text" placeholder="Search projects by name, description..." [value]="searchQuery"
+ (input)="onSearch($event)" id="explore-search-input" />
+ <button *ngIf="searchQuery" class="search-clear-btn" (click)="clearSearch()" title="Clear search"></button>
+ </div>
+ </div>
+
+ <!-- Active filter status bar -->
+ <div class="filter-status-bar" *ngIf="languageFilter || sortMode === 'trending'">
+ <span class="filter-status-label">Showing:</span>
+ <span class="filter-chip" *ngIf="sortMode === 'trending'">
+ Trending
+ </span>
+ <span class="filter-chip lang-active" *ngIf="languageFilter">
+ {{ languageFilter }}
+ <button class="chip-remove" (click)="setLanguageFilter(languageFilter)"
+ title="Remove language filter"></button>
+ </span>
+ <span class="filter-count">{{ filteredProjects.length }} project{{ filteredProjects.length === 1 ? '' : 's'
+ }}</span>
+ </div>
+
+ <!-- Language Filter Chips -->
+ <div class="lang-filter-bar" id="lang-filter-bar">
+ <button class="lang-chip" [class.active-chip]="!languageFilter" (click)="setLanguageFilter('')">All</button>
+ <button *ngFor="let lang of availableLanguages" class="lang-chip" [class.active-chip]="languageFilter === lang"
+ (click)="setLanguageFilter(lang)">
+ {{ lang }}
+ </button>
+ </div>
+
+ <!-- Fork success/error message -->
+ <div *ngIf="forkMessage" class="fork-alert" id="fork-alert">
+ <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+ <circle cx="12" cy="12" r="10"></circle>
+ <polyline points="12 8 12 12 14 14"></polyline>
+ </svg>
+ {{ forkMessage }}
+ </div>
+
+ <div class="explore-content" id="explore-content">
+ <!-- Loading -->
+ <div *ngIf="isLoading" class="loading-state" id="explore-loading">
+ <div class="spinner"></div>
+ <p>Loading {{ sortMode === 'trending' ? 'trending' : 'latest' }} projects...</p>
+ </div>
+
+ <!-- Error -->
+ <div *ngIf="!isLoading && error" class="alert alert-error" id="explore-error">
+ <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+ <circle cx="12" cy="12" r="10" />
+ <line x1="12" y1="8" x2="12" y2="12" />
+ <line x1="12" y1="16" x2="12.01" y2="16" />
+ </svg>
+ {{ error }}
+ <button class="retry-btn" (click)="fetchProjects()">Retry</button>
+ </div>
+
+ <!-- Projects Grid -->
+ <div *ngIf="!isLoading && !error && filteredProjects.length > 0" class="projects-grid">
+ <div class="project-card" *ngFor="let project of filteredProjects">
+ <a class="project-card-body" [routerLink]="['/editor', project.id || project.projectId]"
+ style="cursor:pointer; flex:1; text-decoration:none; color:inherit;">
+ <div class="project-card-header">
+ <h3 class="project-name">{{ project.name }}</h3>
+ <span class="lang-badge">{{ project.language }}</span>
+ </div>
+ <p class="project-desc">{{ project.description || 'No description provided.' }}</p>
+ <p class="project-owner">
+ <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+ <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+ <circle cx="12" cy="7" r="4"></circle>
+ </svg>
+ {{ project.ownerEmail || 'Unknown' }}
+ </p>
+ </a>
+
+ <div class="project-meta">
+ <div class="project-stats">
+ <span class="stat-tag" title="Stars">
+ <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+ <polygon
+ points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2">
+ </polygon>
+ </svg>
+ {{ project.starCount ?? 0 }}
+ </span>
+ <span class="stat-tag" title="Forks">
+ <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+ <circle cx="12" cy="18" r="3"></circle>
+ <circle cx="6" cy="6" r="3"></circle>
+ <circle cx="18" cy="6" r="3"></circle>
+ <path d="M18 9v1a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V9"></path>
+ <line x1="12" y1="12" x2="12" y2="15"></line>
+ </svg>
+ {{ project.forkCount ?? 0 }}
+ </span>
+ <span *ngIf="sortMode === 'trending'" class="trending-badge"> Trending</span>
+ <span *ngIf="project.updatedAt" class="updated-time">{{ formatDate(project.updatedAt) }}</span>
+ </div>
+
+ <button class="fork-btn" type="button" (mousedown)="$event.stopPropagation()"
+ [disabled]="forkingProjectId === (project.id || project.projectId)"
+ (click)="forkProject($event, project)" [title]="isLoggedIn ? 'Fork this project' : 'Login to fork'">
+ <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+ stroke-linecap="round" stroke-linejoin="round">
+ <circle cx="12" cy="18" r="3"></circle>
+ <circle cx="6" cy="6" r="3"></circle>
+ <circle cx="18" cy="6" r="3"></circle>
+ <path d="M18 9v1a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V9"></path>
+ <line x1="12" y1="12" x2="12" y2="15"></line>
+ </svg>
+ <span *ngIf="forkingProjectId === (project.id || project.projectId)">Forking...</span>
+ <span *ngIf="forkingProjectId !== (project.id || project.projectId)">Fork</span>
+ </button>
+ </div>
+ </div>
+ </div>
+
+ <!-- Empty state -->
+ <div *ngIf="!isLoading && !error && filteredProjects.length === 0" class="empty-state">
+ <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
+ stroke-linecap="round" stroke-linejoin="round">
+ <circle cx="11" cy="11" r="8"></circle>
+ <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+ </svg>
+ <h3>No projects found</h3>
+ <p *ngIf="searchQuery || languageFilter">
+ No {{ languageFilter || '' }} projects match "{{ searchQuery }}".
+ <button class="btn-link" (click)="clearSearch(); setLanguageFilter(languageFilter)">Clear filters</button>
+ </p>
+ <p *ngIf="!searchQuery && !languageFilter">
+ {{ sortMode === 'trending' ? 'No trending projects yet.' : 'Be the first to create a public project!' }}
+ </p>
+ <a routerLink="/projects/new" class="btn-primary">Create a project</a>
+ </div>
+ </div>
+ </ng-container>
+
+ 
+ <!-- USERS TAB -->
+ 
+ <ng-container *ngIf="activeTab === 'users'">
+ <div class="explore-controls">
+ <div class="explore-search" style="flex:1; max-width: 100%;">
+ <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+ stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+ <circle cx="11" cy="11" r="8"></circle>
+ <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+ </svg>
+ <input type="text" placeholder="Search users by username..." [value]="userSearchQuery"
+ (input)="onUserSearch($event)" id="user-search-input" />
+ </div>
+ </div>
+
+ <div class="explore-content">
+ <!-- Loading -->
+ <div *ngIf="isLoadingUsers" class="loading-state">
+ <div class="spinner"></div>
+ <p>Searching users...</p>
+ </div>
+
+ <!-- User Cards -->
+ <div *ngIf="!isLoadingUsers && users.length > 0" class="users-grid">
+ <a class="user-card" *ngFor="let user of users" [routerLink]="['/users', user.id]">
+ <div class="user-avatar" *ngIf="!user.avatarUrl">{{ getUserInitial(user) }}</div>
+ <img *ngIf="user.avatarUrl" [src]="user.avatarUrl" class="user-avatar-img" alt="avatar">
+ <div class="user-info">
+ <h3 class="user-name">{{ user.fullName || user.username }}</h3>
+ <p class="user-handle">&#64;{{ user.username }}</p>
+ <p class="user-bio" *ngIf="user.bio">{{ user.bio }}</p>
+ </div>
+ <span class="user-role-badge">{{ user.role }}</span>
+ </a>
+ </div>
+
+ <!-- No results / Prompt -->
+ <div *ngIf="!isLoadingUsers && users.length === 0" class="empty-state">
+ <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+ <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"></path>
+ <circle cx="9" cy="7" r="4"></circle>
+ <path d="M23 21v-2a4 4 0 00-3-3.87"></path>
+ <path d="M16 3.13a4 4 0 010 7.75"></path>
+ </svg>
+ <h3>{{ userSearchQuery ? 'No users found' : 'Search for developers' }}</h3>
+ <p>{{ userSearchQuery ? 'Try a different name or username.' : 'Type a username above to find developers.' }}
+ </p>
+ </div>
+ </div>
+ </ng-container>
+ </div>
+
+ <div class="bottom-glow" aria-hidden="true"></div>
+</div>

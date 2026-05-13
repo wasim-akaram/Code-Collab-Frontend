@@ -1,0 +1,610 @@
+<div class="editor-layout" (click)="closeContextMenu()">
+ <!-- Top Nav Bar -->
+ <header class="editor-header glass-panel">
+ <div class="left-section">
+ <button class="icon-btn" routerLink="/dashboard" title="Back to Dashboard">
+ <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+ <path d="M15 18l-6-6 6-6" />
+ </svg>
+ </button>
+ <div class="header-divider"></div>
+ <span class="project-name">{{ projectName }}</span>
+ </div>
+
+ <div class="center-section">
+ <div class="active-file-tab" *ngIf="activeFile">
+ <span class="file-icon" [ngClass]="getFileIcon(activeFile)"></span>
+ {{ activeFile.name }}
+ <span class="save-indicator" *ngIf="saveStatus === 'saved'">Saved</span>
+ <span class="save-indicator saving" *ngIf="saveStatus === 'saving'">Saving...</span>
+ </div>
+ </div>
+
+ <div class="right-section">
+ <span class="access-badge" *ngIf="!canEditProject">View only</span>
+ <button class="btn-icon-label" (click)="toggleMembersPanel()" [class.active]="showMembersPanel"
+ title="Project Members">
+ <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+ Members
+ </button>
+ <button class="btn-icon-label" (click)="toggleExecHistoryPanel()" [class.active]="showExecHistoryPanel"
+ title="Execution History">
+ <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+ History
+ </button>
+ <button class="btn-icon-label" (click)="toggleCommentPanel()" [class.active]="showCommentPanel" title="Comments">
+ <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+ Comments <span class="comment-count" *ngIf="comments.length">{{ comments.length }}</span>
+ </button>
+ <button class="btn-icon-label" (click)="toggleHistoryPanel()" [class.active]="showHistoryPanel"
+ title="Version History">
+ <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+ Versions <span class="comment-count" *ngIf="snapshots.length">{{ snapshots.length }}</span>
+ </button>
+ <button class="btn-icon-label" (click)="toggleCollabPanel()" [class.active]="showCollabPanel"
+ title="Live Collaboration" [class.collab-live]="activeSession !== null">
+ <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 0 1-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
+ <span class="live-dot" *ngIf="activeSession"></span>
+ <span *ngIf="!activeSession">Collab</span>
+ <span *ngIf="activeSession" class="collab-badge">LIVE - {{ participants.length }}</span>
+ </button>
+
+ <div class="header-divider"></div>
+
+ <button class="btn-save" (click)="saveFile()" [disabled]="!canEditProject || !activeFile || isSaving">
+ <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+ {{ isSaving ? 'Saving...' : 'Save' }}
+ </button>
+ <button class="btn-run" *ngIf="!isRunning" (click)="runCode()" [disabled]="!activeFile">
+ <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+ Run
+ </button>
+ <button class="btn-stop" *ngIf="isRunning" (click)="cancelExecution()">
+ <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><rect x="4" y="4" width="16" height="16" rx="2"/></svg>
+ Stop
+ </button>
+ </div>
+ </header>
+
+ <div class="editor-body">
+ <!-- Sidebar / File Tree -->
+ <aside class="file-explorer glass-panel">
+ <div class="explorer-header">
+ <h3>Explorer</h3>
+ <div class="explorer-actions">
+ <button class="icon-btn" (click)="openCreateDialog('file')" [disabled]="!canEditProject" title="New File">
+ <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+ <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+ <polyline points="14 2 14 8 20 8" />
+ <line x1="12" y1="18" x2="12" y2="12" />
+ <line x1="9" y1="15" x2="15" y2="15" />
+ </svg>
+ </button>
+ <button class="icon-btn" (click)="openCreateDialog('folder')" [disabled]="!canEditProject" title="New Folder">
+ <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+ <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
+ <line x1="12" y1="11" x2="12" y2="17" />
+ <line x1="9" y1="14" x2="15" y2="14" />
+ </svg>
+ </button>
+ <!-- Upload file button -->
+ <button class="icon-btn" (click)="triggerUpload()" [disabled]="!canEditProject || isUploading"
+ title="Upload File">
+ <svg *ngIf="!isUploading" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+ stroke-width="2">
+ <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+ <polyline points="17 8 12 3 7 8" />
+ <line x1="12" y1="3" x2="12" y2="15" />
+ </svg>
+ <svg *ngIf="isUploading" class="spin" width="14" height="14" viewBox="0 0 24 24" fill="none"
+ stroke="currentColor" stroke-width="2">
+ <path d="M21 12a9 9 0 1 1-6.219-8.56" />
+ </svg>
+ </button>
+ <!-- Hidden file input — triggered programmatically -->
+ <input id="file-upload-input" type="file" style="display:none" (change)="handleFileUpload($event)"
+ accept="*/*" />
+ </div>
+ </div>
+
+ <!-- Upload status messages -->
+ <div *ngIf="uploadError" class="upload-msg upload-error"> {{ uploadError }}</div>
+ <div *ngIf="uploadSuccess" class="upload-msg upload-success"> {{ uploadSuccess }}</div>
+
+ <!-- File Search -->
+ <div class="file-search-bar">
+ <input class="file-search-input" [value]="fileSearchQuery" (input)="onFileSearch($any($event.target).value)"
+ placeholder=" Search files..." id="file-search-input" />
+ <button class="icon-btn" *ngIf="fileSearchQuery" (click)="clearFileSearch()" title="Clear"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
+ </div>
+ <div *ngIf="fileSearchResults !== null && fileSearchResults.length === 0" class="search-empty-msg">No files match.
+ </div>
+
+ <ul class="file-list">
+ <li *ngIf="displayedFiles.length === 0 && fileSearchResults === null" class="empty-text">No files yet. Create
+ one!</li>
+ <li *ngFor="let file of displayedFiles" [class.active]="activeFile?.fileId === file.fileId"
+ [style.paddingLeft.px]="12 + getIndentLevel(file) * 16">
+
+ <!-- Normal display -->
+ <div class="file-row" *ngIf="renamingFileId !== file.fileId" (click)="openFile(file)">
+ <span class="file-icon" [ngClass]="getFileIcon(file)"></span>
+ <span class="file-name">{{ file.name }}</span>
+ <button class="file-run-btn" *ngIf="!file.isDirectory && file.fileId" type="button"
+ (mousedown)="$event.stopPropagation()" (click)="runFile(file, $event)" title="Run this file">
+ 
+ </button>
+ <button class="file-action-btn" *ngIf="canEditProject" (click)="toggleContextMenu($event, file)"
+ title="Actions">⋯</button>
+ </div>
+
+ <!-- Rename mode -->
+ <div class="file-row rename-row" *ngIf="renamingFileId === file.fileId">
+ <input class="rename-input" [(ngModel)]="renameValue" (blur)="submitRename(file)"
+ (keydown.enter)="submitRename(file)" (keydown.escape)="cancelRename()" autofocus />
+ </div>
+
+ <!-- Context menu -->
+ <div class="context-menu" *ngIf="canEditProject && contextMenuFileId === file.fileId">
+ <button *ngIf="file.isDirectory" (click)="createInFolder('file', file)"> New File Here</button>
+ <button *ngIf="file.isDirectory" (click)="createInFolder('folder', file)"> New Folder Here</button>
+ <button (click)="startRename(file)"> Rename</button>
+ <button (click)="deleteFileAction(file)"> Delete</button>
+ </div>
+ </li>
+ </ul>
+ </aside>
+
+ <!-- Code Area & Terminal -->
+ <main class="main-editor-area">
+ <div *ngIf="!canEditProject" class="access-banner">
+ 
+ <span>View-only access. Ask the project owner for editor permission to change files.</span>
+ </div>
+
+ <!-- Code Editor (Monaco) -->
+ <div class="code-container glass-panel">
+ <div *ngIf="!activeFile" class="no-file-selected">
+ <div class="empty-icon">--</div>
+ <h2>CodeSync Live Editor</h2>
+ <p>Select a file from the explorer to start coding.</p>
+ <p class="hint">Or create a new file with the + button</p>
+ </div>
+
+ <app-monaco-editor
+ *ngIf="activeFile"
+ [code]="codeContent"
+ [language]="getMonacoLanguage()"
+ [readOnly]="!canEditProject"
+ [theme]="'vs-dark'"
+ (codeChange)="onMonacoChange($event)">
+ </app-monaco-editor>
+ </div>
+
+ <!-- Terminal Panel -->
+ <div class="terminal-panel glass-panel">
+ <div class="terminal-header">
+ <div class="terminal-tabs">
+ <button class="term-tab" [class.active-tab]="!showExecHistoryPanel" (click)="showExecHistoryPanel = false">
+ Terminal</button>
+ <button class="term-tab" [class.active-tab]="showExecHistoryPanel" (click)="toggleExecHistoryPanel()">
+ Exec History</button>
+ </div>
+ <div class="terminal-actions">
+ <input class="stdin-input" [(ngModel)]="stdinInput" placeholder="stdin (optional)" [disabled]="isRunning" />
+ <button class="icon-btn" (click)="clearTerminal()" title="Clear">Clear</button>
+ </div>
+ </div>
+
+ <!-- Terminal Output -->
+ <div class="terminal-content" *ngIf="!showExecHistoryPanel" #terminalContent>
+ <div *ngFor="let line of terminalOutput" class="terminal-line"
+ [class.error-line]="line.startsWith('[WARN]') || line.startsWith('> Error') || line.startsWith('[ERR]')"
+ [class.success-line]="line.startsWith('[OK]')" [class.fail-line]="line.startsWith('[ERR]')">
+ {{ line }}
+ </div>
+ <div *ngIf="isRunning" class="terminal-line running-line">Executing...</div>
+ </div>
+
+ <!-- Execution History -->
+ <div class="exec-history-content" *ngIf="showExecHistoryPanel">
+ <div *ngIf="isLoadingExecHistory" class="comment-loading">Loading history...</div>
+ <div *ngIf="!isLoadingExecHistory && execHistory.length === 0" class="comment-empty">
+ <span class="empty-icon">--</span>
+ <p>No executions yet for this project</p>
+ </div>
+ <div *ngFor="let job of execHistory" class="exec-history-row"
+ [class.selected-job]="selectedHistoryJob?.jobId === job.jobId" (click)="viewHistoryJob(job)">
+ <div class="exec-row-left">
+ <span class="exec-lang-badge">{{ job.language }}</span>
+ <span class="exec-status-badge" [class]="getStatusBadgeClass(job.status)">{{ job.status }}</span>
+ </div>
+ <div class="exec-row-right">
+ <span class="exec-time-small">{{ formatExecTime(job.createdAt) }}</span>
+ <span *ngIf="job.executionTimeMs">· {{ job.executionTimeMs }}ms</span>
+ </div>
+ </div>
+ <button class="btn-secondary btn-sm exec-reload-btn" (click)="loadExecHistory()"> Refresh</button>
+ </div>
+ </div>
+ </main>
+
+ <!-- Comment Panel (Slide-out) -->
+ <aside class="comment-panel glass-panel" *ngIf="showCommentPanel">
+ <div class="comment-panel-header">
+ <h3> Comments</h3>
+ <button class="icon-btn" (click)="toggleCommentPanel()" title="Close"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
+ </div>
+
+ <!-- New Comment Form -->
+ <div class="new-comment-form" *ngIf="activeFile">
+ <div class="comment-line-input">
+ <label>Line #</label>
+ <input type="number" [(ngModel)]="newCommentLine" placeholder="—" min="1" class="line-num-input" />
+ </div>
+ <textarea class="comment-textarea" [(ngModel)]="newCommentText" placeholder="Add a comment..."
+ (keydown.enter)="$any($event).ctrlKey && addComment()" rows="3"></textarea>
+ <button class="btn-primary btn-sm" (click)="addComment()" [disabled]="!newCommentText.trim()">Post
+ Comment</button>
+ </div>
+
+ <!-- Comments List -->
+ <div class="comment-list">
+ <div *ngIf="isLoadingComments" class="comment-loading">Loading comments...</div>
+ <div *ngIf="!isLoadingComments && comments.length === 0" class="comment-empty">
+ <span class="empty-icon">--</span>
+ <p>No comments yet</p>
+ <p class="hint">Be the first to leave feedback!</p>
+ </div>
+
+ <div *ngFor="let comment of comments" class="comment-card" [class.resolved]="comment.resolved">
+ <div class="comment-header">
+ <div class="comment-avatar">{{ getAuthorName(comment.authorEmail).charAt(0).toUpperCase() }}</div>
+ <div class="comment-meta">
+ <span class="comment-author">{{ getAuthorName(comment.authorEmail) }}</span>
+ <span class="comment-time">{{ getCommentTimeAgo(comment.createdAt) }}</span>
+ </div>
+ <span class="comment-line-badge" *ngIf="comment.lineNumber">L{{ comment.lineNumber }}</span>
+ </div>
+
+ <p class="comment-body" [class.resolved-text]="comment.resolved">{{ comment.content }}</p>
+
+ <div class="comment-actions">
+ <button class="action-btn" (click)="startEditComment(comment)"
+ *ngIf="editingCommentId !== comment.commentId" title="Edit">Edit</button>
+ <button class="action-btn" (click)="resolveComment(comment)" title="Toggle resolved">
+ {{ comment.resolved ? ' Reopen' : ' Resolve' }}
+ </button>
+ <button class="action-btn" (click)="toggleReplies(comment)"> Replies</button>
+ <button class="action-btn delete-btn" (click)="deleteComment(comment.commentId)">Delete</button>
+ </div>
+
+ <!-- Inline edit mode -->
+ <div *ngIf="editingCommentId === comment.commentId" class="comment-edit-form">
+ <textarea class="comment-textarea" [(ngModel)]="editCommentText" rows="3"
+ (keydown.escape)="cancelEditComment()"></textarea>
+ <div class="comment-edit-actions">
+ <button class="btn-primary btn-xs" (click)="saveEditComment(comment)">Save</button>
+ <button class="btn-secondary btn-xs" (click)="cancelEditComment()">Cancel</button>
+ </div>
+ </div>
+
+ <!-- Replies -->
+ <div class="replies-section" *ngIf="comment.showReplies">
+ <div *ngFor="let reply of comment.replies" class="reply-card">
+ <div class="comment-header">
+ <div class="comment-avatar small">{{ getAuthorName(reply.authorEmail).charAt(0).toUpperCase() }}</div>
+ <div class="comment-meta">
+ <span class="comment-author">{{ getAuthorName(reply.authorEmail) }}</span>
+ <span class="comment-time">{{ getCommentTimeAgo(reply.createdAt) }}</span>
+ </div>
+ </div>
+ <p class="comment-body reply-body">{{ reply.content }}</p>
+ </div>
+ <!-- Reply input -->
+ <div class="reply-form">
+ <input class="reply-input" [(ngModel)]="comment.replyText" placeholder="Write a reply..."
+ (keydown.enter)="addReply(comment)" />
+ <button class="btn-primary btn-xs" (click)="addReply(comment)"
+ [disabled]="!comment.replyText?.trim()">Send</button>
+ </div>
+ </div>
+ </div>
+ </div>
+ </aside>
+
+ <!-- History Panel (Slide-out) -->
+ <aside class="comment-panel glass-panel history-panel" *ngIf="showHistoryPanel">
+ <div class="comment-panel-header">
+ <h3> Version History</h3>
+ <button class="icon-btn" (click)="toggleHistoryPanel()" title="Close"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
+ </div>
+
+ <!-- Branch Selector Bar -->
+ <div class="branch-bar" *ngIf="activeFile">
+ <div class="branch-selector-wrap">
+ 
+ <select class="branch-select" [(ngModel)]="activeBranch" (change)="switchBranch(activeBranch)"
+ id="branch-select">
+ <option *ngFor="let b of branches" [value]="b">{{ b }}</option>
+ </select>
+ </div>
+ <button class="btn-branch-new" (click)="openBranchDialog()" title="Create new branch">
+ <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+ <line x1="12" y1="5" x2="12" y2="19" />
+ <line x1="5" y1="12" x2="19" y2="12" />
+ </svg>
+ Branch
+ </button>
+ </div>
+
+ <!-- Create Snapshot Form -->
+ <div class="new-comment-form" *ngIf="activeFile">
+ <input class="commit-input" [(ngModel)]="commitMessage" placeholder="Commit message (optional)"
+ (keydown.enter)="createSnapshot()" />
+ <button class="btn-primary btn-sm" (click)="createSnapshot()" [disabled]="!codeContent">
+ Snapshot on '{{ activeBranch }}'
+ </button>
+ </div>
+
+ <!-- Diff Viewer -->
+ <div class="diff-viewer" *ngIf="selectedDiff">
+ <div class="diff-header">
+ <span> Diff: {{ viewingSnapshot?.commitMessage || 'Snapshot #' + viewingSnapshot?.snapshotId }}</span>
+ <button class="icon-btn" (click)="closeDiffView()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
+ </div>
+ <pre class="diff-content">{{ selectedDiff }}</pre>
+ </div>
+
+ <!-- Snapshot List -->
+ <div class="comment-list">
+ <div *ngIf="isLoadingHistory" class="comment-loading">Loading history...</div>
+ <div *ngIf="!isLoadingHistory && snapshots.length === 0" class="comment-empty">
+ <span class="empty-icon">--</span>
+ <p>No snapshots on '{{ activeBranch }}'</p>
+ <p class="hint">Save your first version above!</p>
+ </div>
+
+ <div *ngFor="let snap of snapshots; let i = index" class="snapshot-card"
+ [class.active-snap]="viewingSnapshot?.snapshotId === snap.snapshotId">
+
+ <div class="snapshot-header">
+ <div class="snapshot-dot"></div>
+ <div class="comment-meta">
+ <span class="comment-author">{{ snap.commitMessage || 'Unnamed snapshot' }}</span>
+ <span class="comment-time">
+ {{ getAuthorName(snap.createdByEmail) }} - {{ getCommentTimeAgo(snap.createdAt) }}
+ </span>
+ <!-- Hash badge -->
+ <span class="hash-badge" *ngIf="snap.hash" title="SHA-256: {{ snap.hash }}">
+ #{{ snap.hash.substring(0, 7) }}
+ </span>
+ </div>
+
+ <!-- Tag display / edit -->
+ <div class="tag-area">
+ <span class="snapshot-tag" *ngIf="snap.tag && tagEditingId !== snap.snapshotId"
+ (click)="startTagEdit(snap)" title="Edit tag">{{ snap.tag }}</span>
+ <button class="tag-add-btn" *ngIf="!snap.tag && tagEditingId !== snap.snapshotId"
+ (click)="startTagEdit(snap)" title="Add tag">+ tag</button>
+
+ <!-- Inline tag editor -->
+ <div class="tag-editor" *ngIf="tagEditingId === snap.snapshotId">
+ <input class="tag-input" [(ngModel)]="tagInputs[snap.snapshotId]" placeholder="e.g. v1.0.0"
+ (keydown.enter)="submitTag(snap)" (keydown.escape)="cancelTagEdit()" autofocus />
+ <button class="btn-primary btn-xs" (click)="submitTag(snap)">Save</button>
+ <button class="icon-btn btn-xs" (click)="cancelTagEdit()">Cancel</button>
+ </div>
+ </div>
+ </div>
+
+ <div class="comment-actions">
+ <button class="action-btn" (click)="viewSnapshotDiff(snap, i)"> Diff</button>
+ <button class="action-btn restore-btn" (click)="restoreSnapshot(snap)"
+ title="Non-destructive: creates a new snapshot"> Restore</button>
+ </div>
+ </div>
+ </div>
+ </aside>
+ <!-- Collaboration Panel (Slide-out) -->
+ <aside class="comment-panel glass-panel collab-panel" *ngIf="showCollabPanel">
+ <div class="comment-panel-header">
+ <h3> Live Collaboration</h3>
+ <button class="icon-btn" (click)="toggleCollabPanel()" title="Close"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
+ </div>
+
+ <!-- No active session —— Start or Join -->
+ <div *ngIf="!activeSession" class="collab-idle">
+
+ <!-- ── HOST: Start a new session ── -->
+ <div class="collab-section">
+ <div class="collab-step-badge">Step 1</div>
+ <h4>Start a Session</h4>
+ <p class="hint">Open the file you want to collaborate on, then start a session. Share the generated
+ <strong>Session ID</strong> with your collaborator.
+ </p>
+ <div class="collab-form-row">
+ <label>Max participants</label>
+ <input type="number" [(ngModel)]="newSessionMaxParticipants" min="2" max="20" class="line-num-input" />
+ </div>
+ <div class="collab-form-row">
+ <label>Password protect</label>
+ <input type="checkbox" [(ngModel)]="newSessionPasswordProtected" id="pwd-check" />
+ </div>
+ <div class="collab-form-row" *ngIf="newSessionPasswordProtected">
+ <input type="password" [(ngModel)]="newSessionPassword" placeholder="Session password"
+ class="dialog-input" />
+ </div>
+ <button class="btn-primary btn-sm" (click)="startCollabSession()"
+ [disabled]="!activeFile || isStartingSession">
+ {{ isStartingSession ? 'Starting...' : ' Start Session' }}
+ </button>
+ <div class="hint collab-hint-warn" *ngIf="!activeFile"> Open a file in the editor first before starting a
+ session.</div>
+ <div class="dialog-error" *ngIf="collabError">{{ collabError }}</div>
+ </div>
+
+ <div class="collab-divider">— OR —</div>
+
+ <!-- ── COLLABORATOR: Join an existing session ── -->
+ <div class="collab-section">
+ <div class="collab-step-badge collab-step-join">Join</div>
+ <h4>Join a Session</h4>
+ <p class="hint">
+ Ask the <strong>host</strong> to share the Session ID from their Collab panel.
+ Paste it below — you'll be taken directly to the shared file.
+ </p>
+ <div class="collab-join-how">
+ 
+ <span>Both users must be in the <strong>same project editor</strong>. Open the project, click
+ <strong>Collab</strong> in the toolbar, then paste the ID here.</span>
+ </div>
+ <input class="dialog-input" [(ngModel)]="joinSessionId" placeholder="Paste Session ID here..."
+ (keydown.enter)="joinCollabSession()" />
+ <input class="dialog-input" *ngIf="joinNeedsPassword" type="password" [(ngModel)]="joinPassword"
+ placeholder="Session password" />
+ <button class="btn-secondary btn-sm" (click)="joinCollabSession()"
+ [disabled]="!joinSessionId.trim() || isJoiningSession">
+ {{ isJoiningSession ? 'Joining...' : ' Join Session' }}
+ </button>
+ </div>
+ </div>
+
+ <!-- Active session info -->
+ <div *ngIf="activeSession" class="collab-active">
+
+ <!-- Session ID — prominent share card -->
+ <div class="session-share-card">
+ <p class="session-share-label"> Share this Session ID with collaborators:</p>
+ <div class="session-id-row">
+ <code class="session-id-code">{{ activeSession.sessionId }}</code>
+ <button class="copy-btn" (click)="copySessionId()" title="Copy ID"> Copy</button>
+ </div>
+ <p class="hint session-share-hint">
+ They should open <strong>this same project</strong> click <strong>Collab</strong> in the toolbar paste
+ the ID above in "Join a Session".
+ </p>
+ </div>
+
+ <!-- Participant list -->
+ <div class="participants-section">
+ <div class="participants-header">
+ <span> Participants ({{ participants.length }})</span>
+ <button class="icon-btn" (click)="refreshParticipants()" title="Refresh">Refresh</button>
+ </div>
+ <div *ngFor="let p of participants" class="participant-row">
+ <div class="participant-cursor" [style.background]="p.color"></div>
+ <div class="participant-info">
+ <span class="participant-name">{{ getAuthorName(p.userEmail) }}</span>
+ <span class="participant-role" [class.host-badge]="p.role === 'HOST'">{{ p.role }}</span>
+ </div>
+ <button class="kick-btn" *ngIf="p.role !== 'HOST' && isSessionHost" (click)="kickParticipant(p.userEmail)"
+ title="Kick">⊗</button>
+ </div>
+ <div *ngIf="participants.length === 0" class="comment-empty">
+ <p class="hint">No active participants yet</p>
+ </div>
+ </div>
+
+ <!-- Sync status -->
+ <div class="ws-status" [class.ws-connected]="wsConnected" [class.ws-error]="!wsConnected">
+ <span class="ws-dot"></span>
+ <span *ngIf="wsConnected">Live sync active (WebSocket)</span>
+ <span *ngIf="!wsConnected">Sync via polling (refreshes every 3s)</span>
+ </div>
+
+ <!-- Actions -->
+ <div class="collab-session-actions">
+ <button class="btn-secondary btn-sm" (click)="leaveCollabSession()">
+ Leave Session
+ </button>
+ <button class="btn-danger btn-sm" *ngIf="isSessionHost" (click)="endCollabSession()">
+ End Session
+ </button>
+ </div>
+ </div>
+ </aside>
+
+ <!-- Members Panel (Slide-out) -->
+ <aside class="comment-panel glass-panel members-panel" *ngIf="showMembersPanel">
+ <div class="comment-panel-header">
+ <h3> Project Members</h3>
+ <button class="icon-btn" (click)="toggleMembersPanel()" title="Close"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
+ </div>
+
+ <!-- Add Member Form -->
+ <div class="new-comment-form">
+ <div class="member-add-row">
+ <input class="dialog-input" [(ngModel)]="newMemberEmail" placeholder="Email address"
+ (keydown.enter)="addMember()" id="member-email-input" />
+ <select class="branch-select" [(ngModel)]="newMemberRole" id="member-role-select">
+ <option value="VIEWER">Viewer</option>
+ <option value="EDITOR">Editor</option>
+ </select>
+ </div>
+ <button class="btn-primary btn-sm" (click)="addMember()" [disabled]="!newMemberEmail.trim() || isSavingMember">
+ {{ isSavingMember ? 'Adding...' : '+ Add Member' }}
+ </button>
+ <div class="dialog-error" *ngIf="memberError">{{ memberError }}</div>
+ <div class="member-success" *ngIf="memberSuccess"> {{ memberSuccess }}</div>
+ </div>
+
+ <!-- Member List -->
+ <div class="comment-list">
+ <div *ngIf="isLoadingMembers" class="comment-loading">Loading members...</div>
+ <div *ngIf="!isLoadingMembers && members.length === 0" class="comment-empty">
+ <span class="empty-icon">--</span>
+ <p>No members added yet</p>
+ <p class="hint">Add collaborators above</p>
+ </div>
+ <div *ngFor="let m of members" class="member-row">
+ <div class="comment-avatar">{{ m.userEmail.charAt(0).toUpperCase() }}</div>
+ <div class="member-info">
+ <span class="participant-name">{{ m.userEmail }}</span>
+ <span class="participant-role" [class]="getMemberRoleClass(m.role)">{{ m.role }}</span>
+ </div>
+ <button class="kick-btn" (click)="removeMember(m.userEmail)" title="Remove">Remove</button>
+ </div>
+ </div>
+ </aside>
+ </div>
+
+ <!-- Create File/Folder Dialog -->
+ <div class="dialog-overlay" *ngIf="showCreateDialog" (click)="closeCreateDialog()">
+ <div class="dialog-card" (click)="$event.stopPropagation()">
+ <h3>{{ createType === 'file' ? 'Create New File' : 'Create New Folder' }}</h3>
+ <p class="dialog-hint" *ngIf="createParentPath">
+ Creating inside <strong>{{ createParentPath }}/</strong>
+ </p>
+ <p class="dialog-hint" *ngIf="!createParentPath">
+ Creating at project root. Select a folder first to create inside it.
+ </p>
+ <input class="dialog-input" [(ngModel)]="newItemName"
+ [placeholder]="createType === 'file' ? 'e.g. App.java' : 'e.g. components'"
+ (keydown.enter)="submitCreate()" (keydown.escape)="closeCreateDialog()" autofocus />
+ <div class="dialog-error" *ngIf="createError">{{ createError }}</div>
+ <div class="dialog-actions">
+ <button class="btn-secondary" (click)="closeCreateDialog()">Cancel</button>
+ <button class="btn-primary" (click)="submitCreate()">Create</button>
+ </div>
+ </div>
+ </div>
+
+ <!-- Create Branch Dialog -->
+ <div class="dialog-overlay" *ngIf="showBranchDialog" (click)="closeBranchDialog()">
+ <div class="dialog-card" (click)="$event.stopPropagation()">
+ <h3> Create New Branch</h3>
+ <p class="dialog-hint">Branching from <strong>{{ activeBranch }}</strong> — current file's latest snapshot will be
+ copied.</p>
+ <input class="dialog-input" id="new-branch-input" [(ngModel)]="newBranchName" placeholder="e.g. feature/dark-mode"
+ (keydown.enter)="submitCreateBranch()" (keydown.escape)="closeBranchDialog()" autofocus />
+ <div class="dialog-error" *ngIf="branchError">{{ branchError }}</div>
+ <div class="dialog-actions">
+ <button class="btn-secondary" (click)="closeBranchDialog()">Cancel</button>
+ <button class="btn-primary" (click)="submitCreateBranch()" [disabled]="isCreatingBranch">
+ {{ isCreatingBranch ? 'Creating...' : 'Create Branch' }}
+ </button>
+ </div>
+ </div>
+ </div>
+</div>

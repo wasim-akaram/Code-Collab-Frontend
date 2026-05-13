@@ -1,0 +1,154 @@
+<div class="landing-layout">
+ <app-navbar></app-navbar>
+
+ <!-- ===== HERO SECTION ===== -->
+ <section class="hero-section" id="hero">
+ <!-- Background effects -->
+ <div class="hero-bg" aria-hidden="true">
+ <div class="glow glow-1"></div>
+ <div class="glow glow-2"></div>
+ <div class="glow glow-3"></div>
+ <div class="grid-overlay"></div>
+ </div>
+
+ <div class="hero-content">
+ <!-- Badge -->
+ <div class="hero-badge" id="hero-badge">
+ <span class="badge-icon"></span>
+ <span>Code together. Ship faster.</span>
+ </div>
+
+ <!-- Heading -->
+ <h1 class="hero-title" id="hero-title">
+ The collaborative IDE<br />
+ <span class="gradient-text">built for the browser.</span>
+ </h1>
+
+ <!-- Subtitle -->
+ <p class="hero-subtitle" id="hero-subtitle">
+ CodeSync Live brings your team into one editor. Real-time cursors, instant
+ code execution, snapshots, and reviews — no installs, no config.
+ </p>
+
+ <!-- CTA Buttons -->
+ <div class="hero-cta" id="hero-cta">
+ <a routerLink="/register" class="btn-primary cta-btn" id="cta-start-coding">
+ Start coding free
+ <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+ <line x1="5" y1="12" x2="19" y2="12"></line>
+ <polyline points="12 5 19 12 12 19"></polyline>
+ </svg>
+ </a>
+ <a routerLink="/explore" class="btn-ghost cta-btn" id="cta-explore">Explore projects</a>
+ </div>
+ </div>
+
+ <!-- Code Editor Preview -->
+ <div class="code-preview" id="code-preview">
+ <div class="preview-window">
+ <!-- Title bar -->
+ <div class="preview-titlebar">
+ <div class="window-dots">
+ <span class="dot dot-red"></span>
+ <span class="dot dot-yellow"></span>
+ <span class="dot dot-green"></span>
+ </div>
+ <span class="preview-filename">main.py — quicksort</span>
+ <div class="preview-tabs">
+ <span class="collab-dot" style="background:#6366f1"></span>
+ <span class="collab-dot" style="background:#f43f5e"></span>
+ </div>
+ </div>
+ <!-- Body -->
+ <div class="preview-body">
+ <!-- Sidebar -->
+ <div class="preview-sidebar">
+ <div class="sidebar-label">FILES</div>
+ <div class="sidebar-file active">
+ <span class="file-dot"></span> main.py
+ </div>
+ <div class="sidebar-file">
+ <span class="file-dot inactive"></span> utils.py
+ </div>
+ </div>
+ <!-- Code -->
+ <div class="preview-code">
+ <div class="code-line"><span class="ln">1</span> <span class="kw">def</span> <span class="fn">quicksort</span><span class="p">(arr):</span></div>
+ <div class="code-line"><span class="ln">2</span> <span class="kw">if</span> <span class="fn">len</span><span class="p">(arr)</span> &le; <span class="num">1</span><span class="p">:</span></div>
+ <div class="code-line"><span class="ln">3</span> <span class="kw">return</span> arr</div>
+ <div class="code-line"><span class="ln">4</span> pivot = arr[<span class="fn">len</span>(arr) // <span class="num">2</span>]</div>
+ <div class="code-line"><span class="ln">5</span> left = [x <span class="kw">for</span> x <span class="kw">in</span> arr <span class="kw">if</span> x &lt; pivot]</div>
+ <div class="code-line"><span class="ln">6</span> mid = [x <span class="kw">for</span> x <span class="kw">in</span> arr <span class="kw">if</span> x == pivot]</div>
+ <div class="code-line"><span class="ln">7</span> right = [x <span class="kw">for</span> x <span class="kw">in</span> arr <span class="kw">if</span> x &gt; pivot]</div>
+ <div class="code-line"><span class="ln">8</span> <span class="kw">return</span> <span class="fn">quicksort</span>(left) + mid + <span class="fn">quicksort</span>(right)</div>
+ </div>
+ </div>
+ </div>
+ </div>
+ </section>
+
+ <!-- ===== FEATURES SECTION ===== -->
+ <section class="features-section" id="features">
+ <div class="features-header">
+ <span class="section-label">EVERYTHING YOU NEED</span>
+ <h2 class="section-title">A complete coding studio.</h2>
+ </div>
+
+ <div class="features-grid" id="features-grid">
+ @for (feature of features; track feature.title) {
+ <div class="feature-card">
+ <div class="feature-icon-wrapper">
+ @switch (feature.icon) {
+ @case ('users') {
+ <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+ <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+ <circle cx="9" cy="7" r="4"></circle>
+ <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+ <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+ </svg>
+ }
+ @case ('play') {
+ <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+ <polygon points="5 3 19 12 5 21 5 3"></polygon>
+ </svg>
+ }
+ @case ('git') {
+ <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+ <circle cx="18" cy="18" r="3"></circle>
+ <circle cx="6" cy="6" r="3"></circle>
+ <path d="M13 6h3a2 2 0 0 1 2 2v7"></path>
+ <line x1="6" y1="9" x2="6" y2="21"></line>
+ </svg>
+ }
+ @case ('comment') {
+ <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+ <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+ </svg>
+ }
+ @case ('globe') {
+ <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+ <circle cx="12" cy="12" r="10"></circle>
+ <line x1="2" y1="12" x2="22" y2="12"></line>
+ <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+ </svg>
+ }
+ @case ('lock') {
+ <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+ <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+ <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+ </svg>
+ }
+ }
+ </div>
+ <h3 class="feature-title">{{ feature.title }}</h3>
+ <p class="feature-desc">{{ feature.description }}</p>
+ </div>
+ }
+ </div>
+ </section>
+
+ <!-- ===== FOOTER ===== -->
+ <footer class="landing-footer">
+ <p>&copy; 2026 CodeSync.live — Built for developers, by developers.</p>
+ </footer>
+</div>

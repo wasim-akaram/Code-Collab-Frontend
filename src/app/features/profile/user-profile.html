@@ -1,0 +1,60 @@
+<div class="profile-page">
+ <div class="profile-container">
+
+ <!-- Loading -->
+ <div class="loading-state" *ngIf="isLoading">
+ <div class="spinner"></div>
+ <p>Loading profile...</p>
+ </div>
+
+ <!-- Error -->
+ <div class="alert alert-error" *ngIf="error">
+ <span> {{ error }}</span>
+ </div>
+
+ <!-- User Card -->
+ <div class="profile-card glass-card" *ngIf="user && !isLoading">
+ <div class="profile-header">
+ <div class="avatar-section">
+ <div class="avatar-large" *ngIf="!user.avatarUrl">{{ getInitial() }}</div>
+ <img *ngIf="user.avatarUrl" [src]="user.avatarUrl" class="avatar-img" alt="Avatar">
+ </div>
+
+ <div class="header-info">
+ <h1 class="profile-name">{{ user.fullName || user.username }}</h1>
+ <p class="profile-username">&#64;{{ user.username }}</p>
+ <div class="profile-badges">
+ <span class="badge badge-role">{{ user.role }}</span>
+ <span class="badge badge-provider">{{ user.provider }}</span>
+ </div>
+ </div>
+ </div>
+
+ <div class="profile-body">
+ <div class="info-grid">
+ <div class="info-item">
+ <span class="info-label"> Email</span>
+ <span class="info-value">{{ user.email }}</span>
+ </div>
+ <div class="info-item">
+ <span class="info-label"> Member Since</span>
+ <span class="info-value">{{ getMemberSince() }}</span>
+ </div>
+ </div>
+
+ <div class="bio-section" *ngIf="user.bio">
+ <span class="info-label"> Bio</span>
+ <p class="bio-text">{{ user.bio }}</p>
+ </div>
+ <div class="bio-section" *ngIf="!user.bio">
+ <span class="info-label"> Bio</span>
+ <p class="bio-empty">This user hasn't added a bio yet.</p>
+ </div>
+ </div>
+ </div>
+
+ <div class="back-link">
+ <a routerLink="/explore" class="btn btn-ghost">← Back to Explore</a>
+ </div>
+ </div>
+</div>
