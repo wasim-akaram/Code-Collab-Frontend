@@ -1,5 +1,6 @@
-import { Component, signal, OnInit } from '@angular/core';
+import { Component, signal, OnInit, inject } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
+import { ThemeService } from './core/services/theme';
 
 @Component({
   selector: 'app-root',
@@ -9,6 +10,10 @@ import { RouterOutlet } from '@angular/router';
 })
 export class App implements OnInit {
   protected readonly title = signal('codesync-frontend');
+
+  // Eagerly initialize ThemeService so the stored theme is applied to the DOM
+  // before any child component renders — prevents flash of wrong theme.
+  private readonly themeService = inject(ThemeService);
 
   ngOnInit() {
     // Eagerly preload the two heavy lazy-loaded chunks (Editor + Admin)

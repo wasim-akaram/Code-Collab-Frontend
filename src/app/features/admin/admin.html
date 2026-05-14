@@ -3,8 +3,12 @@
     <!-- Header -->
     <header class="admin-header">
         <div class="admin-header-left">
-            <button class="back-btn" (click)="goToDashboard()">
-                <span class="back-icon"></span>
+            <button class="back-btn" (click)="goToDashboard()" title="Back to Dashboard">
+                <svg class="back-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                     stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M19 12H5"/>
+                    <path d="M12 19l-7-7 7-7"/>
+                </svg>
             </button>
             <div class="admin-brand">
                 <span class="brand-icon"></span>
@@ -145,13 +149,13 @@
         <div class="section-header">
             <h2 class="section-title">User Management</h2>
             <div class="filter-row">
-                <select class="filter-select" [(ngModel)]="userPlanFilter">
+                <select class="filter-select" [value]="userPlanFilter()" (change)="userPlanFilter.set($any($event.target).value)">
                     <option value="ALL">All Plans</option>
                     <option value="PRO"> Pro Only</option>
                     <option value="FREE">Free Only</option>
                 </select>
                 <input class="search-input" type="text" placeholder="Search by email or username…"
-                    [(ngModel)]="userSearch" />
+                    [value]="userSearch()" (input)="userSearch.set($any($event.target).value)" />
             </div>
         </div>
 
@@ -224,13 +228,13 @@
         <div class="section-header">
             <h2 class="section-title">Project Management</h2>
             <div class="filter-row">
-                <select class="filter-select" [(ngModel)]="projectVisFilter">
+                <select class="filter-select" [value]="projectVisFilter()" (change)="projectVisFilter.set($any($event.target).value)">
                     <option value="ALL">All Visibility</option>
                     <option value="PUBLIC">Public Only</option>
                     <option value="PRIVATE">Private Only</option>
                 </select>
                 <input class="search-input" type="text" placeholder="Search by project name…"
-                    [(ngModel)]="projectSearch" />
+                    [value]="projectSearch()" (input)="projectSearch.set($any($event.target).value)" />
             </div>
         </div>
 
@@ -335,7 +339,7 @@
     <div class="tab-content">
         <div class="section-header">
             <h2 class="section-title">Execution Jobs</h2>
-            <select class="filter-select" [(ngModel)]="execFilter">
+            <select class="filter-select" [value]="execFilter()" (change)="execFilter.set($any($event.target).value)">
                 <option value="ALL">All Statuses</option>
                 <option value="COMPLETED">Completed</option>
                 <option value="RUNNING">Running</option>

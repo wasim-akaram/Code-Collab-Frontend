@@ -47,39 +47,44 @@ export class Admin implements OnInit {
   success   = signal('');
 
   // Search / filter
-  userSearch    = '';
-  userPlanFilter = 'ALL';
-  projectSearch = '';
-  projectVisFilter = 'ALL';
-  execFilter    = 'ALL';
+  userSearch     = signal('');
+  userPlanFilter = signal('ALL');
+  projectSearch  = signal('');
+  projectVisFilter = signal('ALL');
+  execFilter     = signal('ALL');
 
   filteredUsers = computed(() =>
     this.users().filter(u => {
-      const matchSearch = !this.userSearch ||
-        u.email?.toLowerCase().includes(this.userSearch.toLowerCase()) ||
-        u.username?.toLowerCase().includes(this.userSearch.toLowerCase());
-      const matchPlan = this.userPlanFilter === 'ALL' ||
-        (this.userPlanFilter === 'PRO' && u.plan === 'PRO') ||
-        (this.userPlanFilter === 'FREE' && u.plan !== 'PRO');
+      const search = this.userSearch();
+      const plan   = this.userPlanFilter();
+      const matchSearch = !search ||
+        u.email?.toLowerCase().includes(search.toLowerCase()) ||
+        u.username?.toLowerCase().includes(search.toLowerCase());
+      const matchPlan = plan === 'ALL' ||
+        (plan === 'PRO' && u.plan === 'PRO') ||
+        (plan === 'FREE' && u.plan !== 'PRO');
       return matchSearch && matchPlan;
     })
   );
 
   filteredProjects = computed(() =>
     this.projects().filter(p => {
-      const matchSearch = !this.projectSearch ||
-        p.name?.toLowerCase().includes(this.projectSearch.toLowerCase());
-      const matchVis = this.projectVisFilter === 'ALL' ||
-        p.visibility === this.projectVisFilter;
+      const search = this.projectSearch();
+      const vis    = this.projectVisFilter();
+      const matchSearch = !search ||
+        p.name?.toLowerCase().includes(search.toLowerCase());
+      const matchVis = vis === 'ALL' ||
+        p.visibility === vis;
       return matchSearch && matchVis;
     })
   );
 
-  filteredExecutions = computed(() =>
-    this.executions().filter(e =>
-      this.execFilter === 'ALL' || e.status === this.execFilter
-    )
-  );
+  filteredExecutions = computed(() => {
+    const filter = this.execFilter();
+    return this.executions().filter(e =>
+      filter === 'ALL' || e.status === filter
+    );
+  });
 
   currentUserEmail = '';
 

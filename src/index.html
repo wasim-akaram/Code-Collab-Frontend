@@ -26,6 +26,16 @@
     </script>
   </head>
   <body>
+    <script>
+      // Apply stored theme BEFORE Angular bootstraps to prevent flash of wrong theme.
+      (function() {
+        var t = localStorage.getItem('codesync-theme');
+        if (t !== 'light' && t !== 'dark') {
+          t = window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+        }
+        document.documentElement.setAttribute('data-theme', t);
+      })();
+    </script>
     <app-root></app-root>
   </body>
 </html>

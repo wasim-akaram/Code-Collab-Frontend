@@ -83,7 +83,7 @@ export class AdminService {
   }
 
   deleteUser(id: number): Observable<string> {
-    return this.http.delete<string>(`${API}/auth/admin/users/${id}`);
+    return this.http.delete(`${API}/auth/admin/users/${id}`, { responseType: 'text' });
   }
 
   getUserStats(): Observable<AdminUserStats> {
@@ -97,7 +97,7 @@ export class AdminService {
   }
 
   forceDeleteProject(id: number): Observable<string> {
-    return this.http.delete<string>(`${API}/projects/admin/${id}`);
+    return this.http.delete(`${API}/projects/admin/${id}`, { responseType: 'text' });
   }
 
   getProjectStats(): Observable<AdminProjectStats> {
@@ -111,7 +111,7 @@ export class AdminService {
   }
 
   forceEndSession(sessionId: string): Observable<string> {
-    return this.http.post<string>(`${API}/sessions/admin/${sessionId}/force-end`, {});
+    return this.http.post(`${API}/sessions/admin/${sessionId}/force-end`, {}, { responseType: 'text' });
   }
 
   // ─── Execution Management ────────────────────────────────────────────────────
