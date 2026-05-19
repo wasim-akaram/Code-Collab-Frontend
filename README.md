@@ -1,59 +1,103 @@
-# CodesyncFrontend
+# CodeSync Frontend
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 21.2.3.
+CodeSync is an advanced collaborative coding platform. This repository contains the frontend client application built with **Angular 21**, **TypeScript**, and **Monaco Editor**. It connects to a Spring Boot microservices backend via an API Gateway and utilizes WebSockets (STOMP/SockJS) for real-time collaborative editing.
 
-## Development server
+##  Technologies Used
 
-To start a local development server, run:
+- **Framework:** [Angular 21](https://angular.io/)
+- **Language:** [TypeScript](https://www.typescriptlang.org/)
+- **Code Editor:** [Monaco Editor](https://microsoft.github.io/monaco-editor/) (The editor that powers VS Code)
+- **WebSockets:** [STOMP.js](https://stomp-js.github.io/) & [SockJS](https://github.com/sockjs/sockjs-client)
+- **Styling:** Vanilla CSS / SCSS
+- **Testing:** [Vitest](https://vitest.dev/)
+- **Containerization:** Docker
 
+##  Prerequisites
+
+Before you begin, ensure you have the following installed on your local machine:
+- **Node.js** (v20 or higher recommended)
+- **npm** (v11.x or higher)
+- **Angular CLI** (`npm install -g @angular/cli`)
+
+You must also have the **CodeSync Backend Microservices** running either locally via Docker Compose or deployed on a remote server, as the frontend relies on the API Gateway for authentication, file management, and code execution.
+
+##  Local Development Setup
+
+Follow these steps to run the frontend application locally:
+
+### 1. Clone the repository
+If you haven't already, clone the repository and navigate to the frontend directory:
 ```bash
-ng serve
+git clone <repository-url>
+cd frontend
 ```
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
-
-## Code scaffolding
-
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
-
+### 2. Install Dependencies
+Install all required npm packages:
 ```bash
-ng generate component component-name
+npm install
 ```
 
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
+### 3. Configure Environment Variables
+Locate the `src/environments/` folder. Ensure the backend API URL is pointing to your API Gateway.
+- **Development:** `environment.ts` usually points to `http://localhost:8080` (or your remote API Gateway URL).
+- **Production:** `environment.prod.ts` points to your production domain or EC2 IP.
+
+### 4. Start the Development Server
+Run the Angular development server:
+```bash
+npm start
+```
+*Alternatively, you can run `ng serve`.*
+
+Open your browser and navigate to `http://localhost:4200/`. The application will automatically reload if you change any of the source files.
+
+##  Building for Production
+
+To build the project for a production environment, run:
 
 ```bash
-ng generate --help
+npm run build
 ```
+This command compiles the Angular application into an output directory (usually `dist/codesync-frontend/`). The build artifacts will be optimized, minified, and ready for deployment to any static hosting service (e.g., Nginx, AWS S3, Vercel).
 
-## Building
+##  Running with Docker
 
-To build the project run:
+This project includes a `Dockerfile` for containerized deployment.
 
+**To build the Docker image:**
 ```bash
-ng build
+docker build -t codesync-frontend:latest .
 ```
 
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
-
-## Running unit tests
-
-To execute unit tests with the [Vitest](https://vitest.dev/) test runner, use the following command:
-
+**To run the Docker container:**
 ```bash
-ng test
+docker run -d -p 80:80 codesync-frontend:latest
 ```
+*Note: In production, the frontend is typically orchestrated alongside the backend using the main `docker-compose.yml` file.*
 
-## Running end-to-end tests
+##  Running Unit Tests
 
-For end-to-end (e2e) testing, run:
-
+The frontend uses Vitest for blazing-fast unit testing.
+To execute the unit tests, run:
 ```bash
-ng e2e
+npm run test
 ```
 
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
+##  Code Quality (SonarQube)
 
-## Additional Resources
+This project integrates with SonarQube for static code analysis.
+If you have a SonarQube server running, you can execute the scanner via:
+```bash
+npm run sonar
+```
+*(Requires `sonar-scanner` to be configured in your environment).*
 
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+##  Contributing
+
+1. Create a feature branch (`git checkout -b feature/amazing-feature`)
+2. Commit your changes (`git commit -m 'Add some amazing feature'`)
+3. Push to the branch (`git push origin feature/amazing-feature`)
+4. Open a Pull Request
+
+
